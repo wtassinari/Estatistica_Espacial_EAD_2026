@@ -1,0 +1,5 @@
+# R/RStudio
+.Rhistory
+.Rproj.user/
+*.Rproj
+.DS_Store  # Se for macOS
