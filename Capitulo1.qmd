@@ -1,9 +1,0 @@
----
-title: "Capitulo1"
----
-
-About this site
-
-```{r}
-1 + 1
-```
