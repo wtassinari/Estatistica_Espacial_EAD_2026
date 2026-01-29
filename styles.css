@@ -1,0 +1,63 @@
+/* styles.css */
+.copy-btn {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  padding: 2px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.copy-btn:hover {
+  opacity: 1;
+}
+
+/* Barra lateral (TOC) */
+#TOC {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 15px;
+  border-left: 5px solid #2c3e50;
+}
+
+/* Links */
+#TOC a {
+  color: #2c3e50;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+/* Hover */
+#TOC a:hover {
+  color: #18bc9c;
+}
+
+/* Subtópicos */
+#TOC ul ul {
+  font-size: 0.95em;
+}
+
+/* Tópico ativo */
+#TOC .active {
+  font-weight: 700;
+}
+
+.main-container {
+  max-width: 1400px;
+}
+
+/* Melhorar visualização de mapas */
+.leaflet-container {
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Destaque para código espacial */
+pre.r {
+  border-left: 4px solid #2c3e50;
+}

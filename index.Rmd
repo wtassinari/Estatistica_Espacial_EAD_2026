@@ -1,12 +1,20 @@
 ---
 title: "Especialização em Estatística Aplicada (PPGEAD): Módulo de Estatística Espacial"
-author: |
-  | Wagner Tassinari 
-  |
-date: "2025"
+author: "Wagner Tassinari"
+date: "2026"
 output:
-  rmdformats::robobook:
-    highlight: kate
+  html_document:
+    toc: true
+    toc_depth: 3
+    number_sections: false
+    toc_float:
+      collapsed: true
+      smooth_scroll: true
+    theme: united
+    highlight: haddock
+    code_folding: none
+    df_print: paged
+    css: styles.css
 ---
 
 ```{r setup, include=FALSE}
@@ -62,16 +70,12 @@ colFmt <- function(x,color) {
 ```
 
 
-```{r echo=F, fig.align="center", out.width="90%", fig.asp=0.5}
 
-include_graphics('figuras/rural2.png')
-```
+# Aula 1
 
-Fonte: [Storymap UFRRJ](https://uploads.knightlab.com/storymapjs/900b7a9343559e19eae3c9dffed08d71/ufrrj/draft.html)
+## Introdução à Análise Estatística Espacial
 
-# Introdução à Análise Estatística Espacial
-
-## O que é Análise Estatística Espacial ?
+### O que é Análise Estatística Espacial ?
 
 - São métodos estatísticos que levam em consideração a localização espacial do fenômeno estudado;
 
@@ -596,7 +600,7 @@ tm_shape(setor.sf) +  tm_borders("black") +
 casos.sf$contador <- 1 
 casos <- setor.sf |>  
   st_join(casos.sf) |> 
-  filter(CLASSI_FIN == 1) %>%  ## seleciona somente os casos confirmados
+  filter(CLASSI_FIN == 1) |>  ## seleciona somente os casos confirmados
   group_by(ID) |> 
   summarise(casos = sum(contador))
 
@@ -1301,12 +1305,12 @@ leaflet(data = estacoes.longlat, options = leafletOptions(
   addProviderTiles("CartoDB.Positron", group = "Ruas") |>
   addProviderTiles("Esri.WorldImagery", options = providerTileOptions(opacity = 0.7), group = "Satélite") |> 
   addProviderTiles(providers$CartoDB.Voyager, group = "Voyager") |>
-  addProviderTiles(providers$Stamen.Toner, group = "Toner") |>
+  addProviderTiles(providers$Stadia.StamenToner, group = "Toner") |>
   setView(lng = -43.42, lat = -22.90, zoom = 10.4) |>
   # addProviderTiles(providers$CartoDB.Voyager) |>
   addMarkers(~X, ~Y, popup = ~as.character(est), label = ~as.character(est),
-             group = "Estações") |>
-############## Polígonos dos Bairros ################
+             group = "Estações")  |>
+  ############## Polígonos dos Bairros ################
 addPolygons(data=bairros.longlat,
             weight = 3,
             color = "darkblue",
@@ -1317,22 +1321,21 @@ addPolygons(data=bairros.longlat,
               textsize = "13px",
               direction = "auto"), 
             group = "Bairros") |>
-########## Adicionando o raster  #########################
+  ########## Adicionando o raster  #########################
 addRasterImage(raster_chuva_longlat, colors = pal, opacity = 0.8,
                group = "Chuva: 1 semana") %>%
-leaflet::addLegend(pal = pal, values = values(raster_chuva_longlat),
-            title = "Chuva Acumulada - 1 semana", group = "Chuva: 1 semana") |>
-############## Controle das layers (botoes) ################
+  leaflet::addLegend(pal = pal, values = values(raster_chuva_longlat),
+                     title = "Chuva Acumulada - 1 semana", group = "Chuva: 1 semana") |>
+  ############## Controle das layers (botoes) ################
 addLayersControl(
   baseGroups = c("Voyager", "Ruas", "Satélite", "Toner"),
   overlayGroups = c("Estações", "Bairros",  "Chuva: 1 semana"),
   options = layersControlOptions(collapsed = FALSE),
   position = "bottomleft") |>
-########## Desabilitando os grupos ################
+  ########## Desabilitando os grupos ################
 hideGroup(group = c("Bairros"))
+
 ```
-
-
 
 ## Bibliografia sugerida
 
