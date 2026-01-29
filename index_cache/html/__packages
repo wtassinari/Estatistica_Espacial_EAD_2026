@@ -45,3 +45,5 @@ lattice
 automap
 raster
 spatstat.univar
+cholera
+MASS

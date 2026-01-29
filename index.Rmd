@@ -10,11 +10,11 @@ output:
     toc_float:
       collapsed: true
       smooth_scroll: true
-    theme: united
-    highlight: haddock
+    theme: flatly
+    highlight: pygments
     code_folding: none
     df_print: paged
-    css: styles.css
+    css: rstudio_theme.css
 ---
 
 ```{r setup, include=FALSE}
@@ -44,12 +44,13 @@ klippy::klippy(
   lang = c("r", "markdown"),
   all_precode = FALSE,
   position = c("top", "right"),
-  color = "navyblue",
+  color = "whitesmoke",
   tooltip_message = "copiar código",
   tooltip_success = "copiado!"
 )
 
 ```
+
 
 ```{r}
 ## Color Format
@@ -69,13 +70,11 @@ colFmt <- function(x,color) {
 }
 ```
 
+📥 [Clique aqui para baixar os dados que iremos utilizar durante as aulas](https://drive.google.com/drive/folders/10WMJYlwHcEX9zw3_RUjDQz5DGZByiI2N?usp=sharing)
 
+# **Aula 1**
 
-# Aula 1
-
-## Introdução à Análise Estatística Espacial
-
-### O que é Análise Estatística Espacial ?
+## O que é Análise Estatística Espacial ?
 
 - São métodos estatísticos que levam em consideração a localização espacial do fenômeno estudado;
 
@@ -84,7 +83,7 @@ colFmt <- function(x,color) {
 - A primeira pergunta a ser feita é: A distribuição dos dados apresenta um padrão aleatório ou apresenta uma agregação definida (*clusters*) ?
 
 ```{r echo=F, fig.align="center", out.width= "70%", fig.show='hold'}
-knitr::include_graphics('figuras/Cluster.png')
+knitr::include_graphics('figuras/imagem1.jpg')
 ```
 
 ## Origem da Estatística Espacial
@@ -156,18 +155,29 @@ include_graphics('figuras/slide4.jpg')
 ```{r echo=F, fig.align="center", message=FALSE, warning=FALSE, comments=NA, out.width="40%", comment=NA}
 knitr::include_graphics('figuras/coordenadas.png')
 ```
+Segue algumas aplicações com os dados do pacote `cholera`, que contêm as localizações das mortes por cólera no famoso estudo de John Snow (Londres, 1854).
 
-```{r echo=F, fig.align="center", message=FALSE, warning=FALSE, comments=NA, out.width="70%", comment=NA}
-knitr::include_graphics('figuras/pontos1.jpg')
+```{r, echo=T, out.width='90%'}
+# install.packages("cholera")
+library(cholera)
+
+#  Mortes por cólera
+head(fatalities[,1:3])
 ```
 
-```{r echo=F, fig.align="center", out.width= "55%", fig.show='hold'}
-knitr::include_graphics('figuras/Cluster2.png')
+```{r, echo=T, out.width='90%'}
+# Dados das Bombas de Água
+head(pumps[,1:4])
+```
+
+
+```{r, echo=T, out.width='90%'}
+# Visualizar mapa 
+snowMap(add.cases = TRUE, add.pumps = TRUE, case.col = "darkred")
+
 ```
 
 ### Estimativas de Kernel (ou Mapas de Calor)
-
-
 
 ```{r echo=F, fig.align="center", out.width= "45%", fig.show='hold'}
 knitr::include_graphics('figuras/kernel2.png')
@@ -178,15 +188,126 @@ knitr::include_graphics('figuras/kernel2.png')
 $$\hat{\lambda}_{\tau}(u) = \dfrac{1}{\tau^2}\sum k(\dfrac{d(u_i , u)}{\tau}), d(u_i , u) \leq \tau$$
 [*Fonte: Referência científica: Druck, S.; Carvalho, M.S.; Câmara, G.; Monteiro, A.V.M. (eds) "Análise Espacial de Dados Geográficos". Brasília, EMBRAPA, 2004](http://www.dpi.inpe.br/gilberto/livro/analise/cap2-eventos.pdf)
 
-```{r echo=F, fig.align="center", out.width= "60%", fig.show='hold'}
-knitr::include_graphics('figuras/kernel3.png')
+```{r, echo=T, out.width='90%'}
+# Instalar e carregar pacotes necessários
+# install.packages(c("spatstat", "MASS", "sf", "raster"))
+library(spatstat)
+library(MASS)
+library(sf)
+library(raster)
+library(viridis)
+
+# Carregar dados
+data(fatalities)
+data(pumps)
+data(roads)
 ```
 
-* Localização da ocorrência de casos de dengue em Belo Horizonte/MG
+```{r, echo=T, out.width='90%'}
+# Kernel 2D simples
+kernel_simple <- kde2d(fatalities$x, fatalities$y, 
+                       n = 100,  # Resolução
+                       lims = c(range(fatalities$x), 
+                               range(fatalities$y)))
 
-```{r echo=F, fig.align="center", out.width= "50%", fig.show='hold'}
-knitr::include_graphics('figuras/dengueBH.png')
+# Plotar
+par(mfrow = c(1, 2))
+
+# Contorno
+contour(kernel_simple, 
+        main = "Densidade de Kernel - Contorno",
+        xlab = "Coordenada X", 
+        ylab = "Coordenada Y",
+        col = "darkred",
+        lwd = 2)
+points(fatalities$x, fatalities$y, pch = ".", col = "red")
+points(pumps$x, pumps$y, pch = 4, col = "blue", cex = 1.5, lwd = 2)
+
+# Imagem de calor
+image(kernel_simple, 
+      main = "Densidade de Kernel - Heatmap",
+      col = heat.colors(50))
+contour(kernel_simple, add = TRUE, col = "white")
+points(pumps$x, pumps$y, pch = 4, col = "blue", cex = 1.5, lwd = 2)
 ```
+
+
+
+```{r, echo=T, out.width='90%'}
+#  Comparação de Diferentes Bandwidths
+# Criar diferentes kernels
+bandwidths <- c(0.2, 0.5, 1.0, 2.0)
+
+par(mfrow = c(2, 2))
+
+for (h in bandwidths) {
+  kernel_h <- kde2d(fatalities$x, fatalities$y, 
+                    h = h,
+                    n = 100,
+                    lims = c(range(fatalities$x), range(fatalities$y)))
+  
+  image(kernel_h,
+        main = paste("Bandwidth =", h),
+        col = terrain.colors(50),
+        xlab = "X", ylab = "Y")
+  
+  contour(kernel_h, add = TRUE, col = "white", lwd = 0.5)
+  points(pumps$x, pumps$y, pch = 4, col = "blue", cex = 1.2, lwd = 1.5)
+  
+  # Adicionar número de mortes no título secundário
+  mtext(paste("Mortes:", nrow(fatalities)), side = 3, line = 0.3, cex = 0.8)
+}
+
+```
+
+
+```{r, echo=T, out.width='90%'}
+# Kernel 3D 
+
+library(plotly)
+
+# Calcular kernel
+kernel_3d <- kde2d(fatalities$x, fatalities$y, n = 50)
+
+# Criar plot 3D
+plot_ly() %>%
+  add_surface(
+    x = kernel_3d$x,
+    y = kernel_3d$y,
+    z = kernel_3d$z,
+    colorscale = list(c(0, "white"), c(1, "red")),
+    opacity = 0.8,
+    name = "Densidade"
+  ) %>%
+  
+  add_markers(
+    x = fatalities$x,
+    y = fatalities$y,
+    z = rep(0, nrow(fatalities)),
+    marker = list(size = 3, color = "black", symbol = "circle"),
+    name = "Mortes"
+  ) %>%
+  
+  add_markers(
+    x = pumps$x,
+    y = pumps$y,
+    z = rep(0, nrow(pumps)),
+    marker = list(size = 8, color = "blue", symbol = "x"),
+    name = "Bombas"
+  ) %>%
+  
+  layout(
+    title = "DENSIDADE 3D DO SURTO DE CÓLERA",
+    scene = list(
+      xaxis = list(title = "Coordenada X"),
+      yaxis = list(title = "Coordenada Y"),
+      zaxis = list(title = "Densidade"),
+      camera = list(eye = list(x = 1.5, y = 1.5, z = 1.5))
+    ),
+    showlegend = TRUE
+  )
+```
+
 
 ## Geoestatística
 
@@ -330,9 +451,9 @@ knitr::include_graphics('figuras/geopandas.png')
 
 Fonte: [Github Geopandas](https://geopandas.org/en/stable/)
 
-# Serão feitas cinco aplicações da Estatística Espacial utilização o pacote estatístico R:
 
-[Clique aqui para baixar os dados das aplicações](https://drive.google.com/drive/folders/10WMJYlwHcEX9zw3_RUjDQz5DGZByiI2N?usp=sharing)
+
+
 
 ## Aplicação I: Utilizando a biblioteca *tmap* para construção de mapas temáticos
 
@@ -467,566 +588,13 @@ data.frame(st_coordinates(coord_pontos),
 
 ---
 
-## Aplicação III: Dengue em Dourados/MS - Parte 1: Análise exploratória
+# **Aula 2**
 
-* Nesta apresentação serão utilizados os dados que fizeram parte da dissertação de [Isis Rodrigues Reitman](https://sucupira.capes.gov.br/sucupira/public/consultas/coleta/trabalhoConclusao/viewTrabalhoConclusao.jsf?popup=true&id_trabalho=3666174) intitulada *“SAÚDE E AMBIENTE URBANO: A RELAÇÃO DE INCIDÊNCIA DE DENGUE E AS DISPARIDADES ESPACIAIS EM DOURADOS – MS"*, apresentada no [Programa de Pós-Graduação em Geografia da Universidade Federal da Grande Douradosos/MS](https://portal.ufgd.edu.br/pos-graduacao/mestrado-doutorado-geografia/index), em abril de 2016. 
+# **Aula 3**
 
+# **Aula 4** 
 
-* Essa aplicação também se encontra no [Curso de Estudos Ecológicos](https://ogcruz.github.io/) ministrado para o curso de [Pós-Graduação em Epidemiologia em Saúde Pública](http://ensino.ensp.fiocruz.br/cursos/mestrado-e-doutorado/epidemiologia-em-saude-publica) em 2019, pelos pesquisadores [Oswaldo Gonçalves Cruz (PROCC/FIOCRUZ)](https://lsbastos.github.io/PROCC/membro-9530671289607786.html) e [Wagner Tassinari (DEMAT/ICE/UFRRJ)](https://institucional.ufrrj.br/ruralpesquisa/wagner-de-souza-tassinari/)
-
- **OBS:** Os dados e as malhas geográficas utilizadas nessa apresentação, estão disponíveis no seguinte endereço: ([link](https://github.com/wtassinari/espacial2021))
-
-
-#### Biliotecas do R que serão utilizadas
-
-```{r, echo=T}
-
-library(readr)
-library(tidyverse)
-library(sf)
-library(maptools)
-library(spatstat)
-library(tmap)
-```
-
-#### Lendo a tabela da população por setor censitário e os *shapes files* do contorno e por setor censitário de Dourados/MS
-
-```{r, echo=T}
-
-pop2010 <- read_csv('dados/dengue_dourados/pop2010.csv')
-setor.sf <- read_sf('dados/dengue_dourados/Setor_UTM_SIRGAS.shp', crs = 31981)
-contorno.sf <- read_sf('dados/dengue_dourados/contorno.shp', crs = 31981)
-
-```
-
-**OBS:** Um aspecto muito importante dos dados espaciais é o sistema de referência de coordenadas (CRS) que é usado. Por exemplo, uma localização de (140, 12) não é significativa se você sabe onde está a origem e se a coordenada x está a 140 metros, quilômetros ou talvez graus de distância dela (na direção x). ([link](https://rspatial.org/raster/spatial/6-crs.html))
-
-
-#### Fazendo um join com as tabelas com os setores censitários + população
-
-```{r, echo=T}
-setor.sf <- setor.sf %>% mutate (idsetor = as.numeric(CD_GEOCODI)) %>% inner_join(pop2010, by='idsetor')
-```
-
-#### Lendo e plotando os casos de dengue georreferenciados em Dourados/MS
-
-```{r, echo=T}
-casos <- read_csv('dados/dengue_dourados/dengue_dourados.csv')
-casos.sf <- st_as_sf(casos, coords = c("X", "Y"), crs = 31981)
-```
-
-```{r, echo=T, out.width="60%"}
-ggplot(setor.sf) + 
-  geom_sf(fill = 'white', color='black') +
-  geom_sf(data=casos.sf, color='red',size=1) +
-  theme_void()
-```
-
-#### Lendo e plotando os os pontos de coleta de lixo georreferenciados em Dourados/MS
-
-```{r, echo=T}
-lixo <- read_csv2('dados/dengue_dourados/lixo_dourados.csv')
-lixo.sf <- st_as_sf(lixo, coords = c("X", "Y"), crs = 31981)
-```
-
-```{r, echo=T,  out.width="70%"}
-ggplot(setor.sf) + 
-  geom_sf(fill = 'white', color = 'black') +
-  geom_sf(data=lixo.sf,color='blue',size=1) +
-  theme_void()
-```
-
-- Como podemos observar, existem alguns pontos de coleta de lixo fora do contorno de Dourados/MS
-
-#### Uma forma de ficarmos só com os pontos dentro do polígono é utilizando o comando st_intersection.
-
-
-```{r, echo=T}
-lixo2.sf <- st_intersection(contorno.sf, lixo.sf)
-```
-
-```{r, echo=T,  out.width="70%"}
-ggplot(setor.sf) + 
-  geom_sf(fill = 'white', color = 'black') +
-  geom_sf(data=lixo2.sf,color='blue',size=1) +
-  theme_void()
-```
-
-#### Utilizando as informações dos casos (pontos) + do lixo (ponto) + população de cada setor censitário (mapa temático)
-
-```{r, echo=T,  out.width="70%"}
-ggplot(setor.sf) + 
-  geom_sf(aes(fill=pop)) + 
-  geom_sf(data=casos.sf,color='red',size=0.7, aes(colour = "Caso"), 
-          show.legend = "point") +
-  geom_sf(data=lixo2.sf,color='salmon',size=1, aes(colour = "Lixo"), 
-          show.legend = "point") +
-  scale_fill_distiller(palette ="PuBu", direction = 1) +
-  scale_colour_manual(values = c("Caso" = "red", "Lixo" = "slamon")) +
-  theme_minimal()
-```
-#### Construindo os buffers
-
-* Agora serão construidos buffers de 500m de distância ao redor de cada ponto de coleta de lixo. Isso é interessante para verificar se os casos de dengue ocorrem em um raio de até 500m de distância dos pontos de coleta de lixo. Ou seja, a pergunta é, será que a distância dos pontos de coeta de lixo influenciam a ocorrência do caso de dengue ?
-
-**Buffers:** São polígonos que contornam um objeto a uma determinada distância. Sua principal função é materializar os conceitos de “perto” e “longe”.
-
-```{r, echo=T,  out.width="70%"}
-lixo_buffer <- st_buffer(lixo2.sf, 500) 
-
-ggplot(setor.sf) + 
-  geom_sf(aes(fill=pop)) + 
-  geom_sf(data=lixo_buffer,color='gray', fill = "transparent", size=0.4) +
-  geom_sf(data=casos.sf, color='red',size=0.7) +
-  scale_fill_distiller(palette ="PuBu", direction = 1) +
-  scale_colour_manual(values = c("Caso" = "red", "Lixo" = "slamon")) +
-  theme_minimal()
-```
-
-#### Represntando os casos e o lixo de forma interativa
-
-```{r, echo=T,  out.width="90%"}
-tm_shape(setor.sf) +  tm_borders("black") +
-  tm_shape(casos.sf) + tm_dots("red") +
-  tm_shape(lixo.sf) + tm_dots("green") +
-  tm_shape(lixo_buffer) + tm_borders("blue") +
-  tmap_mode("view")
-```
-
-#### Convertendo o dado de pontos (padrão pontual) para dados de área
-
-```{r, echo=T}
-## conta casos por setor 
-casos.sf$contador <- 1 
-casos <- setor.sf |>  
-  st_join(casos.sf) |> 
-  filter(CLASSI_FIN == 1) |>  ## seleciona somente os casos confirmados
-  group_by(ID) |> 
-  summarise(casos = sum(contador))
-
-st_geometry(casos) <- NULL  ## remove atributos de geometria
-
-## numero de depositos de Lixo por setor 
-lixo.sf$contador <- 1 
-
-lixo <- setor.sf |>  
-  st_join(lixo.sf) |> 
-  group_by(ID) |> 
-  summarise(lixo = sum(contador))
-
-st_geometry(lixo) <- NULL ## remove atributos de geometria
-
-# Inserindo as contagens dos casos e de pontos de coleta de lixo no atributo com a geometria.
-setor.sf <- setor.sf |> 
-  left_join(lixo,by = 'ID') |> 
-  left_join(casos,by = 'ID') 
-```
-
-
-#### Plotando o mapa temático dos casos por setor censitário
-
-```{r, echo=T,  out.width="70%"}
-plot(setor.sf['casos'])
-```
-
-#### Plotando o mapa temático dos pontos de coleta de lixo por setor censitário
-
-```{r, echo=T,  out.width="70%"}
-plot(setor.sf['lixo'])
-```
-
-#### Calculando a taxa de incidência e plotando o mapa temático dos pontos de coleta de lixo por setor censitário
-
-```{r, echo=T,  out.width="70%"}
-setor.sf$tx <- (setor.sf$casos/setor.sf$pop) * 1000
-setor.sf$tx[is.na(setor.sf$tx)] <- 0 # Transformando os missings em zero
-
-summary(setor.sf$tx)
-```
-
-#### Plotando a distribuição da incidência em Dourados/MS
-
-```{r, echo=T,  out.width="70%"}
-library(wesanderson)
-pal <- wes_palette("Moonrise3", 20, type = "continuous")
-
-ggplot(setor.sf) + 
-  geom_sf(aes(fill = tx), color = 'black') +
-  scale_fill_gradientn(colours = pal) +
-  ggtitle("Taxa de incidência de Dengue") + 
-  theme_void()
-```
-
-#### Kernel por atributos
-
-- Vamos plotar o kernel por atributos referente a taxa de incidência de dengue em Dourados/MS.
-
-- Primeiramente é necessário dissolver os polígonos em formato sf para obter o contorno. Nesse caso queremos preservar o atributo AREA
-
-```{r, echo=T,  out.width="70%"}
-dourados.contorno <- st_union(setor.sf)
-plot(dourados.contorno)
-```
-
-
-```{r, echo=T,  out.width="70%"}
-dourados.w <- as.owin(st_geometry(dourados.contorno))
-```
-
-#### Extraindo os centróides dos polígonos em Dourados/MS
-
-```{r, echo=T,  out.width="70%"}
-centroides <- st_centroid(st_geometry(setor.sf))
-
-# Transformando em os centróides em formato sp
-centroides.sp <- as.data.frame(as_Spatial(centroides))
-names(centroides.sp) <- c('X','Y')
-
-plot(centroides.sp)
-```
-
-#### Colocando os pontos no formato sp
-
-```{r, echo=T,  out.width="70%"}
-centroides.ppp <- ppp(centroides.sp$X,centroides.sp$Y, dourados.w)
-
-plot(centroides.ppp,pch=19,cex=0.5)
-```
-
-#### Fazendo o kernel por atributo da taxa de detecção
-
-```{r, echo=T,  out.width="70%"}
-kernel.tx <- density(centroides.ppp, 500, weights = setor.sf$tx, scalekernel = TRUE)
-plot(kernel.tx)
-```
-
-#### Construindo a matriz de vizinhança para verificar a autocorrelação espacial
-
-```{r, echo=T,  out.width="70%"}
-library(spdep)
-viz <- poly2nb(setor.sf)
-viz 
-```
-
-
-* Iremos precisar da coordenadas dos centróides
-
-```{r, echo=T,  out.width="70%"}
-setor.sp <- as(setor.sf, 'Spatial') # convertendo em formato sp
-coord <- coordinates(setor.sp) # coordenadas dos centroidas dos poligonos de dourados
-class(setor.sp)
-```
-
-#### Verificando a malha de conectividade da vizinhança de Dourados/MS
-
-```{r, echo=T,  out.width="70%"}
-viz.sf <- as(nb2lines(viz, coords = coord), 'sf')
-viz.sf <- st_set_crs(viz.sf, st_crs(setor.sf))
-
-# Plota o grafo de conectividade por contiguidade
-mapa.viz <- ggplot(setor.sf) + 
-  geom_sf(fill = 'salmon', color = 'white') +
-  geom_sf(data = viz.sf) +
-  theme_minimal() +
-  ggtitle("Vizinhança por \n conectividade") +
-  ylab("Latitude") +
-  xlab("Longitude")
-mapa.viz
-```
-
-#### Obtendo a correlação da taxa de incidência de dengue Dourados/MS
-
-```{r, echo=T,  out.width="70%"}
-pesos.viz <- nb2listw(viz)
-moran.test(setor.sf$tx, pesos.viz)
-```
-
-#### Plotando o correlograma
-
-```{r, echo=T,  out.width="70%"}
-correl <- sp.correlogram(viz, setor.sf$tx, order = 8, method = "I")
-correl
-```
-
-```{r, echo=T,  out.width="70%"}
-plot(correl)
-```
-
-#### Mapeando os polígonos que tiveram os p-valores mais significativos no Moran Local.
-
-```{r, echo=T,  out.width="70%"}
-setor.sf$pval <- localmoran(setor.sf$tx, pesos.viz)[,5]
-
-tm_shape(setor.sf) + 
-  tm_polygons(col='pval', title="p-valores", breaks=c(0, 0.01, 0.05, 0.10, 1), border.col = "white", palette="-Oranges") +
-  tm_scale_bar(width = 0.15) 
-```
-
-#### Moran Local (Lisa Map) da taxa de incidência Dourados/MS
-
-```{r, echo=T,  out.width="70%"}
-resI <- localmoran.sad(lm(setor.sf$tx ~ 1), 1:length(viz), viz, style = "W")
-summary(resI)[1:10,]
-```
-
-
-```{r, echo=T,  out.width="70%"}
-setor.sf$MoranLocal <- summary(resI)[,1] 
-
-library(scales)
-
-ggplot(setor.sf) + 
-  geom_sf(aes(fill = MoranLocal), color = 'black') +
-  scale_fill_gradientn(colours=c("blue", "white", "red"), 
-                       values=rescale(c(min(setor.sf$MoranLocal), 0, max(setor.sf$MoranLocal))), guide="colorbar") + 
-  ggtitle("Moran local") + 
-  theme_void()
-```
-
-## Aplicação IV: Dengue em Dourados/MS - Parte 2: Modelagem (Modelos Linear, CAR e GWR)
-
-#### Ajustando o modelo de regressão linear simples.
-
-```{r, echo=T,  out.width="70%"}
-# Transformando os missings em zero
-setor.sf$lixo[is.na(setor.sf$lixo)] <- 0  
-
-dourados.lm <- lm(tx ~ lixo, data = setor.sf)
-summary(dourados.lm)
-```
-
-#### Checando os residuos para verificar a presença de autocorrelação.
-
-```{r, echo=T,  out.width="70%"}
-dourados.lm$lmresid <- residuals(dourados.lm)
-moran.test(dourados.lm$lmresid, pesos.viz)
-```
-
-#### Ajustando o modelo CAR (Spatial Error Model)
-
-```{r, echo=T,  out.width="70%"}
-library(spatialreg)
-dourados.car <- errorsarlm(tx ~ lixo, data = setor.sf, listw = pesos.viz)
-summary(dourados.car)
-```
-
-#### Checando os residuos para verificar a presença de autocorrelação
-
-```{r, echo=T,  out.width="70%"}
-dourados.car$carresid <- residuals(dourados.car)
-moran.test(dourados.car$carresid, pesos.viz)
-```
-
-#### Ajustando o modelo GWR (Geographically Weighted Regression)
-
-```{r, echo=T,  out.width="70%"}
-# Biblioteca para ajustar o modelos GWR
-library(spgwr)
-# Estimando a largura de banda “ideal” para o kernel
-GWRbanda <- gwr.sel(tx ~ lixo, data = setor.sf, coords = cbind(centroides.sp$X, centroides.sp$Y), 
-    adapt = T)
-```
-
-
-```{r, echo=T,  out.width="70%"}
-# Ajustando o modelo GWR
-dourados.gwr = gwr(tx ~ lixo, data = setor.sf, coords = cbind(centroides.sp$X, centroides.sp$Y), 
-    adapt = GWRbanda, hatmatrix = TRUE, se.fit = TRUE)
-
-dourados.gwr
-```
-
-```{r, echo=T,  out.width="70%"}
-# Colocando a saída do modelo dentro de um objeto dataframe.
-results <- as.data.frame(dourados.gwr$SDF)
-head(results)
-```
-
-#### Verificando a distribuição dos coeficientes de regressão para a variável lixo
-
-```{r, echo=T,  out.width="80%"}
-hist(results$lixo)
-abline(v = median(results$lixo), col = "red")
-```
-
-#### Verificando a distribuição dos *localR2*
-
-```{r, echo=T,  out.width="80%"}
-hist(results$localR2)
-abline(v = median(results$localR2), col = "blue")
-```
-
-#### Incorporando alguns parâmetros de saída do modelo na tabela *setor.sf*
-
-```{r, echo=T,  out.width="70%"}
-setor.sf$coef.lixo <- results$lixo
-setor.sf$localR2 <- results$localR2
-setor.sf$pred.gwr <- results$pred
-```
-
-#### Mapa dos coeficientes de regressão para a variável lixo
-
-```{r, echo=T,  out.width="80%"}
-map.lixo <- ggplot(setor.sf) + 
-            geom_sf(aes(fill = coef.lixo), color = "black") +              scale_fill_gradientn(colours = pal) + ggtitle("Distribuição dos coef. var. lixo") + 
-            theme_void()
-map.lixo
-
-```
-
-#### Checando os residuos para verificar a presença de autocorrelação para o modelo GWR.
-
-```{r, echo=T,  out.width="70%"}
-# Calculando os resíduos para o modelo GWR
-results$residuos <- setor.sf$tx - results$pred
-
-moran.test(results$residuos, pesos.viz)
-```
-
-#### Mapeando os coeficientes de regressão para a variável lixo por significancia através do teste de wald
-
-```{r, echo=T,  out.width="100%"}
-# Calculando a estatística de wald
-setor.sf$wald.teste <- abs(results$lixo/results$lixo_se)
-# Dicotomizando a estatística de wald
-setor.sf$wald.teste <- ifelse(setor.sf$wald.teste < 2, 0, 1)
-
-
-map.wald <- ggplot(setor.sf) + geom_sf(aes(fill = factor(wald.teste)), color = "black") + 
-    scale_fill_manual(values = c("white", "purple"), labels = c("< 2", ">= 2"), name = "Wald") + 
-    ggtitle("Coef. lixo significativos") + theme_void()
-
-
-library(gridExtra)
-grid.arrange(map.lixo, map.wald, ncol = 2)
-
-```
-
-#### Mapa dos coeficientes de determinação regionalizados ($R^2$ local).
-
-```{r, echo=T,  out.width="90%"}
-ggplot(setor.sf) + 
-  geom_sf(aes(fill = localR2), color = "black") + scale_fill_gradientn(colours = pal) + 
-  ggtitle("R² local") + theme_void()
-
-```
-
-#### Verificando a distribuição dos preditos.
-
-```{r, echo=T,  out.width="100%"}
-histdens <- function(x, titulo = "") {
-    densi <- density(x)
-    xli <- range(densi$x)
-    yli <- range(densi$y)
-    hist(x, col = "red", probability = T, xlim = xli, ylim = yli, main = titulo)
-    lines(densi, lwd = 2)
-    abline(v = median(x), lwd = 4, col = 4, lty = 2)
-}
-
-par(mfrow = c(2, 2))
-
-hist.tx <- histdens(setor.sf$tx, "Tx Bruta")
-hist.lm <- histdens(dourados.lm$fitted.values, "Pred LM")
-hist.car <- histdens(dourados.car$fitted.values, "Pred CAR")
-hist.gwr <- histdens(results$pred, "Pred GWR")
-```
-
-#### Mapeando os valores observados e preditos dos modelos ajustados
-
-```{r, echo=T,  out.width="100%"}
-library(colorspace)  # 
-
-setor.sf$brks <- cut(setor.sf$tx, include.lowest = TRUE, right = TRUE, breaks = c(-4, 
-    0, 2, 4, 10, 57), labels = c("0", "0 - 2", "2 - 4", "4 - 10", "> 10"))
-
-tx.bruta <- ggplot(setor.sf) + geom_sf(aes(fill = brks), color = "black") + ggtitle("Taxa Bruta") + 
-    scale_fill_discrete_sequential(palette = "Heat2", c1 = 80, c2 = 30, l1 = 30, 
-        l2 = 90, p1 = 0.2, p2 = 1.5, na.value = "grey75", drop = FALSE, name = "Taxa") + 
-    theme_void()
-
-
-
-setor.sf$brks.lm <- cut(dourados.lm$fitted.values, lowest = TRUE, right = TRUE, breaks = c(-4, 
-    0, 2, 4, 10, 57), labels = c("0", "0 - 2", "2 - 4", "4 - 10", "> 10"))
-
-
-pred.lm <- ggplot(setor.sf) + geom_sf(aes(fill = brks.lm), color = "black") + ggtitle("Taxa Predita - LM") + 
-    scale_fill_discrete_sequential(palette = "Heat2", c1 = 80, c2 = 30, l1 = 30, 
-        l2 = 90, p1 = 0.2, p2 = 1.5, na.value = "grey75", drop = FALSE, name = "Taxa") + 
-    theme_void()
-
-setor.sf$brks.car <- cut(dourados.car$fitted.values, lowest = TRUE, right = TRUE, 
-    breaks = c(-4, 0, 2, 4, 10, 57), labels = c("0", "0 - 2", "2 - 4", "4 - 10", 
-        "> 10"))
-
-
-pred.car <- ggplot(setor.sf) + geom_sf(aes(fill = brks.car), color = "black") + ggtitle("Taxa Predita - CAR") + 
-    scale_fill_discrete_sequential(palette = "Heat2", c1 = 80, c2 = 30, l1 = 30, 
-        l2 = 90, p1 = 0.2, p2 = 1.5, na.value = "grey75", drop = FALSE, name = "Taxa") + 
-    theme_void()
-
-setor.sf$brks.gwr <- cut(results$pred, lowest = TRUE, right = TRUE, breaks = c(-4, 
-    0, 2, 4, 10, 57), labels = c("0", "0 - 2", "2 - 4", "4 - 10", "> 10"))
-
-
-pred.gwr <- ggplot(setor.sf) + geom_sf(aes(fill = brks.car), color = "black") + ggtitle("Taxa Predita - GWR") + 
-    scale_fill_discrete_sequential(palette = "Heat2", c1 = 80, c2 = 30, l1 = 30, 
-        l2 = 90, p1 = 0.2, p2 = 1.5, na.value = "grey75", drop = FALSE, name = "Taxa") + 
-    theme_void()
-
-library(gridExtra)
-grid.arrange(tx.bruta, pred.lm, pred.car, pred.gwr, ncol = 2)
-```
-
-#### Comparando a distribuição dos resíduos dos modelos ajustados
-
-```{r, echo=T,  out.width="90%"}
-library(vioplot)
-vioplot(dourados.lm$residuals, dourados.car$residuals, results$residuos, names = c("LM", 
-    "CAR", "GWR"), col = "orange")
-title("Gráficos violinos da distribuição dos resíduos")
-```
-
-#### Mapeando os resíduos dos modelos ajustados
-
-```{r, echo=T,  out.width="100%"}
-library(colorspace)  # 
-
-setor.sf$brks.res.lm <- cut(dourados.lm$residuals, include.lowest = TRUE, right = TRUE, 
-    breaks = c(-14, -5, -1, 1, 5, 52), labels = c("< -5", "-5 a -1", "0", "1 a 5", 
-        "> 5"))
-
-res.lm <- ggplot(setor.sf) + geom_sf(aes(fill = brks.res.lm), color = "black") + 
-    ggtitle("Resíduos - LM") + scale_fill_discrete_sequential(palette = "Purple-Yellow", 
-    c1 = 80, c2 = 30, l1 = 30, l2 = 90, p1 = 0.2, p2 = 1.5, na.value = "grey75", 
-    drop = FALSE, name = "Taxa") + theme_void()
-
-setor.sf$brks.res.car <- cut(dourados.car$residuals, include.lowest = TRUE, right = TRUE, 
-    breaks = c(-14, -5, -1, 1, 5, 52), labels = c("< -5", "-5 a -1", "0", "1 a 5", 
-        "> 5"))
-
-res.car <- ggplot(setor.sf) + geom_sf(aes(fill = brks.res.car), color = "black") + 
-    ggtitle("Resíduos - CAR") + scale_fill_discrete_sequential(palette = "Purple-Yellow", 
-    c1 = 80, c2 = 30, l1 = 30, l2 = 90, p1 = 0.2, p2 = 1.5, na.value = "grey75", 
-    drop = FALSE, name = "Taxa") + theme_void()
-
-
-setor.sf$brks.res.gwr <- cut(results$residuos, include.lowest = TRUE, right = TRUE, 
-    breaks = c(-14, -5, -1, 1, 5, 52), labels = c("< -5", "-5 a -1", "0", "1 a 5", 
-        "> 5"))
-
-res.gwr <- ggplot(setor.sf) + geom_sf(aes(fill = brks.res.gwr), color = "black") + 
-    ggtitle("Resíduos - GWR") + scale_fill_discrete_sequential(palette = "Purple-Yellow", 
-    c1 = 80, c2 = 30, l1 = 30, l2 = 90, p1 = 0.2, p2 = 1.5, na.value = "grey75", 
-    drop = FALSE, name = "Taxa") + theme_void()
-
-
-library(gridExtra)
-grid.arrange(res.lm, res.car, res.gwr, ncol = 2)
-
-```
-
-## Aplicação V: Geoestatística com dados de pluviosidade na cidade do Rio de Janeiro/RJ
+## Geoestatística com dados de pluviosidade na cidade do Rio de Janeiro/RJ
 
 #### Biliotecas do R que serão utilizadas
 

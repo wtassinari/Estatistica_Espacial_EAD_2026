@@ -1,0 +1,81 @@
+/* Tema completo RStudio-like */
+:root {
+  --rstudio-bg: #1e1e1e;
+  --rstudio-text: #d4d4d4;
+  --rstudio-blue: #569cd6;
+  --rstudio-green: #6a9955;
+  --rstudio-orange: #ce9178;
+  --rstudio-cyan: #4ec9b0;
+}
+
+/* Blocos de código */
+pre.r, pre.python, pre.sql {
+  background-color: var(--rstudio-bg) !important;
+  color: var(--rstudio-text) !important;
+  border: 2px solid #2d2d2d !important;
+  border-left: 6px solid #569cd6 !important;
+  border-radius: 8px;
+  padding: 20px;
+  font-family: 'Consolas', 'Monaco', 'Ubuntu Mono', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Sintaxe colorida */
+pre.r .kw { color: var(--rstudio-blue) !important; font-weight: bold; }
+pre.r .dt { color: var(--rstudio-cyan) !important; }
+pre.r .dv { color: #b5cea8 !important; }
+pre.r .st { color: var(--rstudio-orange) !important; }
+pre.r .co { color: var(--rstudio-green) !important; font-style: italic; }
+pre.r .ot { color: #dcdcaa !important; }
+pre.r .fu { color: #dcdcaa !important; }
+pre.r .va { color: #9cdcfe !important; }
+pre.r .re { color: #d16969 !important; }  /* Errors/warnings: vermelho */
+pre.r .er { color: #f44747 !important; }  /* Error messages */
+
+/* Linhas de output */
+pre.r .out {
+  color: #808080 !important;  /* Cinza para output */
+  font-style: italic;
+}
+
+/* Destaque para linhas importantes */
+pre.r .im {
+  background-color: #264f78 !important;  /* Destaque azul escuro */
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+/* Números de linha (opcional) */
+pre.r::before {
+  content: attr(data-line);
+  color: #858585;
+  position: absolute;
+  left: -40px;
+  text-align: right;
+  width: 30px;
+}
+
+/* Container para código */
+.code-container {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 15px;
+  margin: 20px 0;
+  border: 1px solid #e9ecef;
+}
+
+.code-container pre {
+  margin: 0;
+}
+
+/* Título do bloco de código */
+.code-title {
+  background: #2c3e50;
+  color: white;
+  padding: 8px 15px;
+  border-radius: 5px 5px 0 0;
+  margin: -15px -15px 15px -15px;
+  font-family: monospace;
+  font-size: 0.9em;
+}

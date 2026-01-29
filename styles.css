@@ -61,3 +61,31 @@
 pre.r {
   border-left: 4px solid #2c3e50;
 }
+
+/* Tema "GeoEstat" customizado */
+body {
+  font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+}
+
+h1, h2, h3 {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  color: #2c3e50;
+}
+
+/* Destaque para termos estatísticos */
+.termo-estatistico {
+  background-color: #e8f4f8;
+  border-left: 4px solid #3498db;
+  padding: 10px;
+  border-radius: 0 5px 5px 0;
+}
+
+/* Frames para mapas e gráficos */
+.grafico-container {
+  border: 2px solid #ecf0f1;
+  border-radius: 10px;
+  padding: 15px;
+  background: white;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
