@@ -72,9 +72,9 @@ colFmt <- function(x,color) {
 
 📥 [Clique aqui para baixar os dados que iremos utilizar durante as aulas](https://drive.google.com/drive/folders/10WMJYlwHcEX9zw3_RUjDQz5DGZByiI2N?usp=sharing)
 
-# **Aula 1**
+# Introdução à Estatística Espacial 
 
-## O que é Análise Estatística Espacial ?
+## O que é Estatística Espacial ?
 
 - São métodos estatísticos que levam em consideração a localização espacial do fenômeno estudado;
 
@@ -124,7 +124,7 @@ dados." (Cressie N.,1991)
 - *"Todas as coisas se parecem, coisas mais próximas são mais parecidas que
 aquelas mais distantes."*  (Tobler, 1979). `r colFmt(" **Também conhecida como $1^a$ Lei da Geografia**",'red')`
 
-## Tipologia dos Dados Espaciais
+# Tipologia dos Dados Espaciais
 
 Os diferentes tipos de dados espaciais são tradicionalmente classificados de acordo com uma tipologia. Esta caracterização diz respeito a natureza estocástica da observação.
 
@@ -155,7 +155,219 @@ include_graphics('figuras/slide4.jpg')
 ```{r echo=F, fig.align="center", message=FALSE, warning=FALSE, comments=NA, out.width="40%", comment=NA}
 knitr::include_graphics('figuras/coordenadas.png')
 ```
-Segue algumas aplicações com os dados do pacote `cholera`, que contêm as localizações das mortes por cólera no famoso estudo de John Snow (Londres, 1854).
+
+
+## Focos de incêndios ocorridos em Castilla-La Mancha, Espanha, entre 1998 e 2007.
+
+Esse conjunto de dados, `clmfires`, pertence ao pacote spatstat (Baddeley, Turner e Rubak, 2022).
+
+```{r, echo=T, out.width='90%'}
+library(spatstat)
+plot(clmfires, use.marks = FALSE, pch = ".") 
+```
+
+
+```{r echo=F, fig.align="center", message=FALSE, warning=FALSE, comments=NA, out.width="70%", comment=NA}
+knitr::include_graphics('figuras/pontos1.jpg')
+```
+
+```{r echo=F, fig.align="center", out.width= "55%", fig.show='hold'}
+knitr::include_graphics('figuras/Cluster2.png')
+```
+
+### Estimativas de Kernel (ou Mapas de Calor)
+
+
+```{r echo=F, fig.align="center", out.width= "45%", fig.show='hold'}
+knitr::include_graphics('figuras/kernel2.png')
+```
+
+* Estimador de intensidade de distribuição de pontos: 
+
+$$\hat{\lambda}_{\tau}(u) = \dfrac{1}{\tau^2}\sum k(\dfrac{d(u_i , u)}{\tau}), d(u_i , u) \leq \tau$$
+[*Fonte: Referência científica: Druck, S.; Carvalho, M.S.; Câmara, G.; Monteiro, A.V.M. (eds) "Análise Espacial de Dados Geográficos". Brasília, EMBRAPA, 2004](http://www.dpi.inpe.br/gilberto/livro/analise/cap2-eventos.pdf)
+
+```{r echo=F, fig.align="center", out.width= "60%", fig.show='hold'}
+knitr::include_graphics('figuras/kernel3.png')
+```
+
+* Localização da ocorrência de casos de dengue em Belo Horizonte/MG
+
+```{r echo=F, fig.align="center", out.width= "50%", fig.show='hold'}
+knitr::include_graphics('figuras/dengueBH.png')
+```
+
+## Geoestatística
+
+* Podemos definir como sendo uma análise de um atributo espacialmente contínuo amostrado em localizações fixas.
+
+* Os dados compreendem um conjunto de localizações (em geral latitudes e longitudes), mas atribuidos a eles uma medida, como por exemplo: volume de chuva, concentração de poluentes no ar, número de ovos de Aedes postado em ovitrampas, etc.
+
+
+## Amostras de concentrações de chumbo na camada superficial do sol
+
+Esse conjunto de dados (`meuse`) se trata das concentrações de chumbo na camada superficial do solo (mg por kg de solo) em vários locais amostrados em uma planície de inundação do rio Meuse, próximo a Stein, na Holanda, obtidas a partir do pacote sp (Pebesma e Bivand, 2022).
+
+```{r, echo=T, out.width='90%'}
+library(sp)
+library(sf)
+library(mapview)
+
+data(meuse)
+meuse <- st_as_sf(meuse, coords = c("x", "y"), crs = 28992)
+mapview(meuse, zcol = "lead",  map.types = "CartoDB.Voyager")
+```
+
+
+* A determinação experimental do semivariograma, para cada valor de $x_i$, considera todos os pares de amostras $z(x)$ e $z(x+h)$, separadas pelo vetor distância $h$, a partir da equação: 
+
+```{r echo=F, fig.align="center", out.width= "25%", fig.show='hold'}
+knitr::include_graphics('figuras/variograma3.png')
+```
+
+
+$$\hat{\gamma}(h) = \dfrac{1}{2N(h)}\sum^{N(h)}_{i=1}[z(x_i) - z(x_i + h)]^2 $$
+
+* Sendo $\hat{\gamma}(h)$ o semivariograma estimado e $N(h)$ o número de pares de valores medidos, $z(x)$ e $z(x+h)$, separados pelo vetor $h$.  
+
+```{r echo=F, fig.align="center", out.width= "40%", fig.show='hold'}
+include_graphics('figuras/variograma1.png')
+```
+
+* Esta fórmula, entretanto, não é robusta. Podem existir situações em que variabilidade local não é constante e se
+modifica ao longo da área de estudo (heteroscedasticidade). 
+
+```{r echo=F, fig.align="center", out.width= "40%", fig.show='hold'}
+include_graphics('figuras/variograma2.png')
+```
+
+[*Fonte: Referência científica: Druck, S.; Carvalho, M.S.; Câmara, G.; Monteiro, A.V.M. (eds) "Análise Espacial de Dados Geográficos". Brasília, EMBRAPA, 2004](http://www.dpi.inpe.br/gilberto/livro/analise/cap3-superficies.pdf)
+
+
+* **Exemplo:** Mapa sobre o teor de argila no solo.
+
+```{r echo=F, fig.align="center", out.width= "70%", fig.show='hold'}
+knitr::include_graphics('figuras/geoestatistica7.png')
+```
+
+
+## Dados de Área
+
+* Na análise de áreas o atributo estudado é em geral resultado de uma medida sumáraria (ex: contagem, taxas, médias, etc.) em uma determinada área bem definida, por exemplo um polígono.
+
+* Tal polígono cuja forma pode ser complexa bem como as relações de vizinhança.
+
+* O objetivo é a detecção e explicação de padrões e tendências observados entre áreas.
+
+
+### Mapa Temático
+
+* Taxas de câncer de pulmão na população branca masculina nos Estados Unidos, por condados no ano de 1998
+
+```{r echo=F, fig.align="center", out.width="70%"}
+knitr::include_graphics('figuras/area1_2019.png')
+```
+
+## Mapa Temático Mundial da Expectativa de Vida entre os Países
+
+```{r, echo=T, out.width='90%'}
+library(tmap)
+data(World)
+tmap_style("classic")
+# Desenhando um rápido mapa temático mundial para esperança de vida.
+qtm(World, fill = "life_exp")
+```
+
+### Matriz de Vizinhança
+
+```{r echo=F, fig.align="center", out.width="55%"}
+knitr::include_graphics('figuras/vizinhanca.png')
+```
+
+### Moran Global, Moran Local e Lisa Map
+
+```{r echo=F, fig.align="center", out.width="20%", fig.cap="Moran Global"}
+knitr::include_graphics('figuras/moran_global.png')
+```
+
+```{r echo=F, fig.align="center", out.width="30%", fig.cap="Moran Local"}
+knitr::include_graphics('figuras/moran_local.png')
+```
+
+* Desigualdade no nível distrital na cobertura de saúde reprodutiva, materna, neonatal e infantil na Índia
+
+```{r echo=F, fig.align="center", out.width="90%"}
+knitr::include_graphics('figuras/moran_local2.png')
+```
+
+[Fonte: PANDA, Basant Kumar; KUMAR, Gulshan; AWASTHI, Ashish. District level inequality in reproductive, maternal, neonatal and child health coverage in India. BMC public health, v. 20, n. 1, p. 1-10, 2020.](https://bmcpublichealth.biomedcentral.com/articles/10.1186/s12889-020-8151-9)
+
+### Modelos de Regressão Espacial
+
+* `r colFmt(" Hipótese de independência das observações em geral é Falsa ",'orange')` $\rightarrow$ Dependência Espacial
+
+* Efeitos Espaciais $\rightarrow$ Se existir forte tendência ou correlação espacial, os resultados serão influenciados, apresentando associação estatística onde não existe (e vice-versa);
+
+* `r colFmt("**Como verificar ?** ",'darkred')` $\rightarrow$ Medir a autocorrelação espacial dos resíduos da regressão (Índice de Moran dos resíduos).
+
+* Autocorrelação espacial constatada ! E agora ? $\rightarrow$ Utilizar Modelos de regressão que incorporam efeitos espaciais:
+
+    i) **Modelos Globais:** utilizam um único parâmetro para capturar a estrutura de correlação espacial $\rightarrow$ ex: *Spatial Error Models (CAR)*
+    
+$$y_i = \beta_0 + \sum^{p}_{k} \beta_k x_{ik}  + \varepsilon_i \text{    , sendo  }  \varepsilon_i = \lambda  W + \xi$$
+
+  * Os efeitos da autocorrelação espacial são associados ao termo de erro. Sendo  $W$ a matriz de vizinhaça, $\varepsilon$ a componente do erro com efeitos espaciais, $λ$ é o coeficiente autoregressivo e $\xi$ é a componente do erro com variância constante e não
+correlacionada. 
+
+  * A hipótese nula para a não existência de autocorrelação é que $\lambda = 0$, ou seja, o termo de erro não é espacialmente correlacionado. 
+
+    ii) **Modelos Locais:** parâmetros variam continuamente no espaço ex: *Geographically Weighted Regression (GWR)*
+    
+$$y_i = \beta_{0}(u_i, v_i) + \sum^{p}_{k}  \beta_k (u_i, v_i) x_{ik} + \varepsilon_i \text{    , sendo  } (u_i, v_i) \text{    as coordenadas geográficas}$$
+[Fonte: ARDILLY, Pascal et al. Manuel d’analyse spatiale. 2018.](https://ec.europa.eu/eurostat/documents/3859598/9462709/INSEE-ESTAT-SPATIAL-ANA-18-EN.pdf)
+
+
+# Algumas Ferramentas para Estatística Espacial
+
+## SiG QGIS
+
+```{r echo=F, fig.align="center", out.width="80%"}
+knitr::include_graphics('figuras/QGIS.png')
+```
+
+[QGIS: Um Sistema de Informação Geográfica livre e aberto](https://www.qgis.org/pt_BR/site/)
+
+## GEODA
+
+```{r echo=F, fig.align="center", out.width="80%"}
+knitr::include_graphics('figuras/GEODA.png')
+```
+
+[GEODA: AN INTRODUCTION TO SPATIAL DATA ANALYSIS](https://spatial.uchicago.edu/geoda)
+
+
+## R
+
+```{r echo=F, fig.align="center", out.width="60%"}
+knitr::include_graphics('figuras/logo_ubuntu.png')
+```
+
+Fonte: [Dicas para integração e instalação do R 4.2 no Ubuntu 22.04 LTS e os pacotes espaciais](https://rtask.thinkr.fr/installation-of-r-4-2-on-ubuntu-22-04-lts-and-tips-for-spatial-packages/)
+
+
+## Python
+
+```{r echo=F, fig.align="center", out.width="60%"}
+knitr::include_graphics('figuras/geopandas.png')
+```
+
+Fonte: [Github Geopandas](https://geopandas.org/en/stable/)
+
+# Aplicações da Estatística Espacial utilização o pacote estatístico R:
+
+## Aplicação I: Estudo de John Snow
+
+- Segue algumas aplicações com os dados do pacote `cholera`, que contêm as localizações das mortes por cólera no famoso estudo de John Snow (Londres, 1854).
 
 ```{r, echo=T, out.width='90%'}
 # install.packages("cholera")
@@ -176,17 +388,6 @@ head(pumps[,1:4])
 snowMap(add.cases = TRUE, add.pumps = TRUE, case.col = "darkred")
 
 ```
-
-### Estimativas de Kernel (ou Mapas de Calor)
-
-```{r echo=F, fig.align="center", out.width= "45%", fig.show='hold'}
-knitr::include_graphics('figuras/kernel2.png')
-```
-
-* Estimador de intensidade de distribuição de pontos: 
-
-$$\hat{\lambda}_{\tau}(u) = \dfrac{1}{\tau^2}\sum k(\dfrac{d(u_i , u)}{\tau}), d(u_i , u) \leq \tau$$
-[*Fonte: Referência científica: Druck, S.; Carvalho, M.S.; Câmara, G.; Monteiro, A.V.M. (eds) "Análise Espacial de Dados Geográficos". Brasília, EMBRAPA, 2004](http://www.dpi.inpe.br/gilberto/livro/analise/cap2-eventos.pdf)
 
 ```{r, echo=T, out.width='90%'}
 # Instalar e carregar pacotes necessários
@@ -270,7 +471,7 @@ library(plotly)
 kernel_3d <- kde2d(fatalities$x, fatalities$y, n = 50)
 
 # Criar plot 3D
-plot_ly() %>%
+plot_ly() |>
   add_surface(
     x = kernel_3d$x,
     y = kernel_3d$y,
@@ -278,24 +479,21 @@ plot_ly() %>%
     colorscale = list(c(0, "white"), c(1, "red")),
     opacity = 0.8,
     name = "Densidade"
-  ) %>%
-  
+  ) |>
   add_markers(
     x = fatalities$x,
     y = fatalities$y,
     z = rep(0, nrow(fatalities)),
     marker = list(size = 3, color = "black", symbol = "circle"),
     name = "Mortes"
-  ) %>%
-  
+  ) |>
   add_markers(
     x = pumps$x,
     y = pumps$y,
     z = rep(0, nrow(pumps)),
     marker = list(size = 8, color = "blue", symbol = "x"),
     name = "Bombas"
-  ) %>%
-  
+  ) |>
   layout(
     title = "DENSIDADE 3D DO SURTO DE CÓLERA",
     scene = list(
@@ -309,163 +507,7 @@ plot_ly() %>%
 ```
 
 
-## Geoestatística
-
-* Podemos definir como sendo uma análise de um atributo espacialmente contínuo amostrado em localizações fixas.
-
-* Os dados compreendem um conjunto de localizações (em geral latitudes e longitudes), mas atribuidos a eles uma medida, como por exemplo: volume de chuva, concentração de poluentes no ar, número de ovos de Aedes postado em ovitrampas, etc.
-
-
-* A determinação experimental do semivariograma, para cada valor de $x_i$, considera todos os pares de amostras $z(x)$ e $z(x+h)$, separadas pelo vetor distância $h$, a partir da equação: 
-
-```{r echo=F, fig.align="center", out.width= "25%", fig.show='hold'}
-knitr::include_graphics('figuras/variograma3.png')
-```
-
-
-$$\hat{\gamma}(h) = \dfrac{1}{2N(h)}\sum^{N(h)}_{i=1}[z(x_i) - z(x_i + h)]^2 $$
-
-* Sendo $\hat{\gamma}(h)$ o semivariograma estimado e $N(h)$ o número de pares de valores medidos, $z(x)$ e $z(x+h)$, separados pelo vetor $h$.  
-
-```{r echo=F, fig.align="center", out.width= "40%", fig.show='hold'}
-include_graphics('figuras/variograma1.png')
-```
-
-* Esta fórmula, entretanto, não é robusta. Podem existir situações em que variabilidade local não é constante e se
-modifica ao longo da área de estudo (heteroscedasticidade). 
-
-```{r echo=F, fig.align="center", out.width= "40%", fig.show='hold'}
-include_graphics('figuras/variograma2.png')
-```
-
-[*Fonte: Referência científica: Druck, S.; Carvalho, M.S.; Câmara, G.; Monteiro, A.V.M. (eds) "Análise Espacial de Dados Geográficos". Brasília, EMBRAPA, 2004](http://www.dpi.inpe.br/gilberto/livro/analise/cap3-superficies.pdf)
-
-
-* **Exemplo:** Mapa sobre o teor de argila no solo.
-
-```{r echo=F, fig.align="center", out.width= "70%", fig.show='hold'}
-knitr::include_graphics('figuras/geoestatistica7.png')
-```
-
-
-
-
-## Dados de Área
-
-* Na análise de áreas o atributo estudado é em geral resultado de uma medida sumáraria (ex: contagem, taxas, médias, etc.) em uma determinada área bem definida, por exemplo um polígono.
-
-* Tal polígono cuja forma pode ser complexa bem como as relações de vizinhança.
-
-* O objetivo é a detecção e explicação de padrões e tendências observados entre áreas.
-
-
-### Mapa Temático
-
-* Taxas de câncer de pulmão na população branca masculina nos Estados Unidos, por condados no ano de 1998
-
-```{r echo=F, fig.align="center", out.width="70%"}
-knitr::include_graphics('figuras/area1_2019.png')
-```
-
-### Matriz de Vizinhança
-
-```{r echo=F, fig.align="center", out.width="55%"}
-knitr::include_graphics('figuras/vizinhanca.png')
-```
-
-### Moran Global, Moran Local e Lisa Map
-
-```{r echo=F, fig.align="center", out.width="20%", fig.cap="Moran Global"}
-knitr::include_graphics('figuras/moran_global.png')
-```
-
-```{r echo=F, fig.align="center", out.width="30%", fig.cap="Moran Local"}
-knitr::include_graphics('figuras/moran_local.png')
-```
-
-* Desigualdade no nível distrital na cobertura de saúde reprodutiva, materna, neonatal e infantil na Índia
-
-```{r echo=F, fig.align="center", out.width="90%"}
-knitr::include_graphics('figuras/moran_local2.png')
-```
-
-[Fonte: PANDA, Basant Kumar; KUMAR, Gulshan; AWASTHI, Ashish. District level inequality in reproductive, maternal, neonatal and child health coverage in India. BMC public health, v. 20, n. 1, p. 1-10, 2020.](https://bmcpublichealth.biomedcentral.com/articles/10.1186/s12889-020-8151-9)
-
-### Modelos de Regressão Espacial
-
-* `r colFmt(" Hipótese de independência das observações em geral é Falsa ",'orange')` $\rightarrow$ Dependência Espacial
-
-* Efeitos Espaciais $\rightarrow$ Se existir forte tendência ou correlação espacial, os resultados serão influenciados, apresentando associação estatística onde não existe (e vice-versa);
-
-* `r colFmt("**Como verificar ?** ",'darkred')` $\rightarrow$ Medir a autocorrelação espacial dos resíduos da regressão (Índice de Moran dos resíduos).
-
-* Autocorrelação espacial constatada ! E agora ? $\rightarrow$ Utilizar Modelos de regressão que incorporam efeitos espaciais:
-
-    i) **Modelos Globais:** utilizam um único parâmetro para capturar a estrutura de correlação espacial $\rightarrow$ ex: *Spatial Error Models (CAR)*
-    
-$$y_i = \beta_0 + \sum^{p}_{k} \beta_k x_{ik}  + \varepsilon_i \text{    , sendo  }  \varepsilon_i = \lambda  W + \xi$$
-
-  * Os efeitos da autocorrelação espacial são associados ao termo de erro. Sendo  $W$ a matriz de vizinhaça, $\varepsilon$ a componente do erro com efeitos espaciais, $λ$ é o coeficiente autoregressivo e $\xi$ é a componente do erro com variância constante e não
-correlacionada. 
-
-  * A hipótese nula para a não existência de autocorrelação é que $\lambda = 0$, ou seja, o termo de erro não é espacialmente correlacionado. 
-
-    ii) **Modelos Locais:** parâmetros variam continuamente no espaço ex: *Geographically Weighted Regression (GWR)*
-    
-$$y_i = \beta_{0}(u_i, v_i) + \sum^{p}_{k}  \beta_k (u_i, v_i) x_{ik} + \varepsilon_i \text{    , sendo  } (u_i, v_i) \text{    as coordenadas geográficas}$$
-[Fonte: ARDILLY, Pascal et al. Manuel d’analyse spatiale. 2018.](https://ec.europa.eu/eurostat/documents/3859598/9462709/INSEE-ESTAT-SPATIAL-ANA-18-EN.pdf)
-
-## Como trabalhar com Análise Estatística Espacial: Algumas ferramentas
-
-### SiG QGIS
-
-```{r echo=F, fig.align="center", out.width="80%"}
-knitr::include_graphics('figuras/QGIS.png')
-```
-
-[QGIS: Um Sistema de Informação Geográfica livre e aberto](https://www.qgis.org/pt_BR/site/)
-
-### GEODA
-
-```{r echo=F, fig.align="center", out.width="80%"}
-knitr::include_graphics('figuras/GEODA.png')
-```
-
-[GEODA: AN INTRODUCTION TO SPATIAL DATA ANALYSIS](https://spatial.uchicago.edu/geoda)
-
-
-### R
-
-```{r echo=F, fig.align="center", out.width="60%"}
-knitr::include_graphics('figuras/logo_ubuntu.png')
-```
-
-Fonte: [Dicas para integração e instalação do R 4.2 no Ubuntu 22.04 LTS e os pacotes espaciais](https://rtask.thinkr.fr/installation-of-r-4-2-on-ubuntu-22-04-lts-and-tips-for-spatial-packages/)
-
-
-### Python
-
-```{r echo=F, fig.align="center", out.width="60%"}
-knitr::include_graphics('figuras/geopandas.png')
-```
-
-Fonte: [Github Geopandas](https://geopandas.org/en/stable/)
-
-
-
-
-
-## Aplicação I: Utilizando a biblioteca *tmap* para construção de mapas temáticos
-
-```{r, echo=T, out.width='90%'}
-library(tmap)
-data(World)
-tmap_style("classic")
-# Desenhando um rápido mapa temático mundial para esperança de vida.
-qtm(World, fill = "life_exp")
-```
-
-## Aplicação II: Baixando e construindo mapas a partir da biblioteca *geobr*
+## Aplicação II: Construindo mapa temático
 
 
 #### Bibliotecas que serão utilizadas:
@@ -482,10 +524,9 @@ library(ggspatial)
 
 ```
 
-* Para acessar os dados dos limites territoriais de todos os estados brasileiros é necessário utilizar a função *read_state*.
 
 ```{r, echo=T}
-brasil.ufs <- read_state(code_state = "all", year=2019, showProgress = FALSE)
+brasil.ufs <- st_read("malhas/brasil_ufs_2019.shp")
 ```
 
 #### Primeiro, vamos fazer um gráfico apenas com as geometrias.
@@ -499,7 +540,7 @@ ggplot(brasil.ufs) +
 
 ```{r, echo=T,  out.width="70%"}
 ggplot(brasil.ufs) + 
-  geom_sf(aes(fill = name_region)) + 
+  geom_sf(aes(fill = nam_rgn)) + 
   labs(fill="Região")
 ```
 
@@ -508,7 +549,7 @@ ggplot(brasil.ufs) +
 
 ```{r, echo=T,  out.width="70%"}
 # Entrando com os dados observados na wikipedia
-acesso_san <- data.frame(code_state = c(12, 27, 16, 13, 29, 23, 53, 32, 52, 21, 51, 50, 31, 15, 
+acesso_san <- data.frame(cod_stt = c(12, 27, 16, 13, 29, 23, 53, 32, 52, 21, 51, 50, 31, 15, 
                                    25, 41, 26, 22, 33, 24, 43, 11, 14, 42, 35, 28, 17), 
                          com_rede = c(0.273, 0.412, 0.313, 0.177, 0.513, 0.696, 1.000, 0.974, 0.280, 0.065, 
                                       0.191, 0.449, 0.916, 0.063, 0.731, 0.421, 0.881, 0.045, 0.924, 0.353, 
@@ -520,7 +561,7 @@ acesso_san <- data.frame(code_state = c(12, 27, 16, 13, 29, 23, 53, 32, 52, 21, 
 ```{r, echo=T,  out.width="80%"}
 # Construindo o mapa com ggplot
 brasil.ufs |> 
-  left_join(acesso_san, by = "code_state") |> 
+  left_join(acesso_san, by = "cod_stt") |> 
   mutate(com_rede = 100*com_rede) |> 
   ggplot(aes(fill = com_rede), color = "black") +
     geom_sf() + 
@@ -541,7 +582,7 @@ brasil.ufs |>
 ```{r, echo=T,  out.width="80%"}
 # Juntando o banco com os dados + malha
 coord_pontos <- brasil.ufs |> 
-                  left_join(acesso_san, by = "code_state") |> 
+                  left_join(acesso_san, by = "cod_stt") |> 
                   mutate(com_rede = 100*com_rede) |> 
                   st_centroid()
 ```
@@ -571,7 +612,7 @@ ggplot(brasil.ufs)+
 ```{r, echo=T,  out.width="70%"}
 data.frame(st_coordinates(coord_pontos), 
            com_rede = coord_pontos$com_rede, 
-           UF = coord_pontos$name_state) |>
+           UF = coord_pontos$nam_stt) |>
   leaflet() |> 
     addTiles() |>
     addCircleMarkers(~ X, ~ Y,
@@ -584,15 +625,6 @@ data.frame(st_coordinates(coord_pontos),
 </center>
 
 [Créditos ao Thiago Mendonça](https://www.tiagoms.com/post/mapa/)
-
-
----
-
-# **Aula 2**
-
-# **Aula 3**
-
-# **Aula 4** 
 
 ## Geoestatística com dados de pluviosidade na cidade do Rio de Janeiro/RJ
 
