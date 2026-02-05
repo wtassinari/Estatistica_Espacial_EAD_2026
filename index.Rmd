@@ -138,7 +138,7 @@ Noel Cressie (1993) divide a estatı́stica espacial em 3 grandes áreas:
 
 Existem métodos estatı́sticos diferentes para descrever ou analisar estes tipos de dados. Exemplo:
 
-```{r echo=F, fig.align="center", out.width= "75%", fig.show='hold'}
+```{r echo=F, fig.align="center", out.width= "85%", fig.show='hold'}
 include_graphics('figuras/slide4.jpg')
 
 ```
@@ -156,7 +156,6 @@ include_graphics('figuras/slide4.jpg')
 knitr::include_graphics('figuras/coordenadas.png')
 ```
 
-
 ### Focos de incêndios ocorridos em Castilla-La Mancha, Espanha, entre 1998 e 2007.
 
 Esse conjunto de dados, `clmfires`, pertence ao pacote spatstat (Baddeley, Turner e Rubak, 2022).
@@ -168,12 +167,12 @@ plot(clmfires, use.marks = FALSE, pch = ".")
 
 ### Possíveis distribuições dos pontos
 
-
-```{r echo=F, fig.align="center", out.width= "55%", fig.show='hold'}
+```{r echo=F, fig.align="center", out.width= "65%", fig.show='hold'}
 knitr::include_graphics('figuras/Cluster2.png')
 ```
 
 ### Investigando os padrões pontuais
+
 
 
 ```{r echo=F, fig.align="center", message=FALSE, warning=FALSE, comments=NA, out.width="70%", comment=NA}
@@ -184,7 +183,8 @@ knitr::include_graphics('figuras/pontos1.jpg')
 ### Estimativas de Kernel (ou Mapas de Calor)
 
 
-```{r echo=F, fig.align="center", out.width= "45%", fig.show='hold'}
+
+```{r echo=F, fig.align="center", out.width= "60%", fig.show='hold'}
 knitr::include_graphics('figuras/kernel2.png')
 ```
 
@@ -214,7 +214,7 @@ knitr::include_graphics('figuras/dengueBH.png')
 
 Esse conjunto de dados (`meuse`) se trata das concentrações de chumbo na camada superficial do solo (mg por kg de solo) em vários locais amostrados em uma planície de inundação do rio Meuse, próximo a Stein, na Holanda, obtidas a partir do pacote sp (Pebesma e Bivand, 2022).
 
-```{r, echo=T, out.width='90%'}
+```{r, echo=T, out.width='85%'}
 library(sp)
 library(sf)
 library(mapview)
@@ -227,7 +227,7 @@ mapview(meuse, zcol = "lead",  map.types = "CartoDB.Voyager")
 
 * A determinação experimental do semivariograma, para cada valor de $x_i$, considera todos os pares de amostras $z(x)$ e $z(x+h)$, separadas pelo vetor distância $h$, a partir da equação: 
 
-```{r echo=F, fig.align="center", out.width= "90%", fig.show='hold'}
+```{r echo=F, fig.align="center", out.width= "55%", fig.show='hold'}
 knitr::include_graphics('figuras/variograma3.png')
 ```
 
@@ -236,14 +236,14 @@ $$\hat{\gamma}(h) = \dfrac{1}{2N(h)}\sum^{N(h)}_{i=1}[z(x_i) - z(x_i + h)]^2 $$
 
 * Sendo $\hat{\gamma}(h)$ o semivariograma estimado e $N(h)$ o número de pares de valores medidos, $z(x)$ e $z(x+h)$, separados pelo vetor $h$.  
 
-```{r echo=F, fig.align="center", out.width= "40%", fig.show='hold'}
+```{r echo=F, fig.align="center", out.width= "55%", fig.show='hold'}
 include_graphics('figuras/variograma1.png')
 ```
 
 * Esta fórmula, entretanto, não é robusta. Podem existir situações em que variabilidade local não é constante e se
 modifica ao longo da área de estudo (heteroscedasticidade). 
 
-```{r echo=F, fig.align="center", out.width= "40%", fig.show='hold'}
+```{r echo=F, fig.align="center", out.width= "55%", fig.show='hold'}
 include_graphics('figuras/variograma2.png')
 ```
 
