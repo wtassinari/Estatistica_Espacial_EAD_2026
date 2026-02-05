@@ -1,5 +1,5 @@
 ---
-title: "Especialização em Estatística Aplicada (PPGEAD): Módulo de Estatística Espacial"
+title: "Estatística Estatística Espacial"
 author: "Wagner Tassinari"
 date: "2026"
 output:
@@ -157,7 +157,7 @@ knitr::include_graphics('figuras/coordenadas.png')
 ```
 
 
-## Focos de incêndios ocorridos em Castilla-La Mancha, Espanha, entre 1998 e 2007.
+### Focos de incêndios ocorridos em Castilla-La Mancha, Espanha, entre 1998 e 2007.
 
 Esse conjunto de dados, `clmfires`, pertence ao pacote spatstat (Baddeley, Turner e Rubak, 2022).
 
@@ -166,14 +166,20 @@ library(spatstat)
 plot(clmfires, use.marks = FALSE, pch = ".") 
 ```
 
+### Possíveis distribuições dos pontos
+
+
+```{r echo=F, fig.align="center", out.width= "55%", fig.show='hold'}
+knitr::include_graphics('figuras/Cluster2.png')
+```
+
+### Investigando os padrões pontuais
+
 
 ```{r echo=F, fig.align="center", message=FALSE, warning=FALSE, comments=NA, out.width="70%", comment=NA}
 knitr::include_graphics('figuras/pontos1.jpg')
 ```
 
-```{r echo=F, fig.align="center", out.width= "55%", fig.show='hold'}
-knitr::include_graphics('figuras/Cluster2.png')
-```
 
 ### Estimativas de Kernel (ou Mapas de Calor)
 
@@ -204,7 +210,7 @@ knitr::include_graphics('figuras/dengueBH.png')
 * Os dados compreendem um conjunto de localizações (em geral latitudes e longitudes), mas atribuidos a eles uma medida, como por exemplo: volume de chuva, concentração de poluentes no ar, número de ovos de Aedes postado em ovitrampas, etc.
 
 
-## Amostras de concentrações de chumbo na camada superficial do sol
+### Amostras de concentrações de chumbo na camada superficial do sol
 
 Esse conjunto de dados (`meuse`) se trata das concentrações de chumbo na camada superficial do solo (mg por kg de solo) em vários locais amostrados em uma planície de inundação do rio Meuse, próximo a Stein, na Holanda, obtidas a partir do pacote sp (Pebesma e Bivand, 2022).
 
@@ -221,7 +227,7 @@ mapview(meuse, zcol = "lead",  map.types = "CartoDB.Voyager")
 
 * A determinação experimental do semivariograma, para cada valor de $x_i$, considera todos os pares de amostras $z(x)$ e $z(x+h)$, separadas pelo vetor distância $h$, a partir da equação: 
 
-```{r echo=F, fig.align="center", out.width= "25%", fig.show='hold'}
+```{r echo=F, fig.align="center", out.width= "90%", fig.show='hold'}
 knitr::include_graphics('figuras/variograma3.png')
 ```
 
@@ -268,7 +274,7 @@ knitr::include_graphics('figuras/geoestatistica7.png')
 knitr::include_graphics('figuras/area1_2019.png')
 ```
 
-## Mapa Temático Mundial da Expectativa de Vida entre os Países
+### Mapa Temático Mundial da Expectativa de Vida entre os Países
 
 ```{r, echo=T, out.width='90%'}
 library(tmap)
@@ -362,6 +368,7 @@ knitr::include_graphics('figuras/geopandas.png')
 ```
 
 Fonte: [Github Geopandas](https://geopandas.org/en/stable/)
+
 
 # Aplicações da Estatística Espacial utilização o pacote estatístico R:
 
@@ -626,22 +633,23 @@ data.frame(st_coordinates(coord_pontos),
 
 [Créditos ao Thiago Mendonça](https://www.tiagoms.com/post/mapa/)
 
-## Geoestatística com dados de pluviosidade na cidade do Rio de Janeiro/RJ
+## Aplicação v: Geoestatística com dados de pluviosidade na cidade do Rio de Janeiro/RJ
 
-#### Biliotecas do R que serão utilizadas
+### Biliotecas do R que serão utilizadas
 
 ```{r, echo=T}
+library(automap)
+library(gstat)
+
 library(sf)
 library(sp)
 library(dplyr)
-library(gstat)
 library(lattice)
-library(automap)
 library(raster)
-library(leaflet)
 ```
 
-#### Importando a tabela com a chuva acumulada média de 7 dias das últimas 24hs e 96hs das estações pluviométricas da cidde do Rio de Janeiro
+
+### Importando a tabela com a chuva acumulada média de 7 dias das últimas 24hs e 96hs das estações pluviométricas da cidde do Rio de Janeiro
 
 [Descrição das Estações (Alerta Rio)](http://www.sistema-alerta-rio.com.br/dados-meteorologicos/info-estacoes/)
 
@@ -651,14 +659,14 @@ library(leaflet)
 pluvio <- read.csv("dados/chuva_rio/pluviosidade.csv", sep=";")
 ```
 
-#### Análise Gráfica Descritiva 
+### Análise Gráfica Descritiva 
 
 ```{r, echo=T}
 quantil <- quantile(pluvio$acumulado_24h, seq(0,1,0.2))
 quantil
 ```
 
-#### Transformar os dados em um objeto espacial do R
+### Transformar os dados em um objeto espacial do R
 
 * x - Longitude
 * y - Latitude
@@ -667,7 +675,7 @@ quantil
 sp::coordinates(pluvio) = ~ x + y
 ```
 
-#### Análise Gráfica Descritiva com os dados espaciais
+### Análise Gráfica Descritiva com os dados espaciais
 
 ```{r, echo=T,  out.width="90%"}
 # Bubble plot
@@ -679,13 +687,13 @@ bubble(pluvio, "acumulado_24h", key.entries = quantil, pch=19, col="blue")
 spplot(pluvio['acumulado_24h'], scales=list(draw=T), key.space="right", colorkey=T)
 ```
 
-#### Modelando o variograma experimental (ou empírico)
+### Modelando o variograma experimental (ou empírico)
 
 - **width** - Distância média entre amostras ou distância dos lags
 - **cutoff** - Máxima distância
 
 ```{r, echo=T}
-variogram.emp = variogram(acumulado_24h ~x+y, pluvio, width=1000, cutoff=20000)
+variogram.emp = gstat::variogram(acumulado_24h ~x+y, pluvio, width=1000, cutoff=20000)
 variogram.emp
 ```
 
@@ -693,6 +701,8 @@ variogram.emp
 # Variogram plot
 plot(variogram.emp, main = "Empirical variogram", pch = 19, col = "darkblue")
 ```
+
+
 
 #### Ajustando o semivariograma teórico
 
@@ -734,6 +744,7 @@ plot.exp <- plot(variogram.emp, exp.fit, main = "Modelo Exponencial")
 plot.gau <- plot(variogram.emp, gau.fit, main = "Modelo Gaussiano")
 plot.wav <- plot(variogram.emp, wav.fit, main = "Modelo Wave")
 ```
+
 
 #### Validação cruzada 
 
@@ -892,6 +903,8 @@ raster_chuva_longlat <- projectRaster(raster_chuva, crs = CRS("+proj=longlat +da
 ```
 
 ```{r, echo=T}
+library(leaflet)
+
 # Definindo Paleta de cores da superfície interpolada da chuva
 pal <- colorNumeric(c("#000066", "#00c8f8", "#F0E68C","#FFFF00", "#FF8C00"), values(raster_chuva_longlat), na.color = "transparent", reverse = T)
 ```

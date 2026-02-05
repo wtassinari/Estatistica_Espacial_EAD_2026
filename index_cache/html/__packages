@@ -26,3 +26,6 @@ geobr
 maptools
 leaflet
 ggspatial
+automap
+gstat
+lattice
