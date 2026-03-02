@@ -1,6 +1,6 @@
 ---
 title: "Estatística Estatística Espacial"
-author: "Wagner Tassinari"
+author: ""
 date: "2026"
 output:
   html_document:
@@ -16,6 +16,13 @@ output:
     df_print: paged
     css: rstudio_theme.css
 ---
+
+**Wagner Tassinari**  
+Fundação Oswaldo Cruz (FIOCRUZ)  
+Universidade Federal Rural do Rio de Janeiro (UFRRJ)  
+📧 tassinari@ufrrj.br
+
+
 
 ```{r setup, include=FALSE}
 library(knitr)
@@ -72,7 +79,11 @@ colFmt <- function(x,color) {
 }
 ```
 
-📥 [Clique aqui para baixar os dados que iremos utilizar durante as aulas](https://drive.google.com/drive/folders/10WMJYlwHcEX9zw3_RUjDQz5DGZByiI2N?usp=sharing)
+📥 [Clique aqui para baixar os dados que iremos utilizar durante as aulas](https://drive.google.com/drive/folders/1lBUWVYcwFDBqrxdz6s0oxaiCS8gAVWj7?usp=sharing)
+
+
+🌐 **Site oficial do pacote `queimadasR`** 
+👉 [Acessar documentação](https://wtassinari.github.io/queimadasR/)
 
 # Introdução à Estatística Espacial 
 
@@ -226,15 +237,20 @@ knitr::include_graphics('figuras/kernel2.png')
 $$\hat{\lambda}_{\tau}(u) = \dfrac{1}{\tau^2}\sum k(\dfrac{d(u_i , u)}{\tau}), d(u_i , u) \leq \tau$$
 [*Fonte: Referência científica: Druck, S.; Carvalho, M.S.; Câmara, G.; Monteiro, A.V.M. (eds) "Análise Espacial de Dados Geográficos". Brasília, EMBRAPA, 2004](http://www.dpi.inpe.br/gilberto/livro/analise/cap2-eventos.pdf)
 
+
+
+#### **Localização da ocorrência de casos de dengue em Belo Horizonte/MG**
+
 ```{r echo=F, fig.align="center", out.width= "60%", fig.show='hold'}
 knitr::include_graphics('figuras/kernel3.png')
 ```
 
-* Localização da ocorrência de casos de dengue em Belo Horizonte/MG
 
-```{r echo=F, fig.align="center", out.width= "50%", fig.show='hold'}
-knitr::include_graphics('figuras/dengueBH.png')
-```
+A imagem mostra a distribuição espacial dos casos de dengue em Belo Horizonte (MG) em três larguras de banda ($\tau$) diferentes: 500 m, 1500 m e 2500 m. As cores indicam a intensidade da ocorrência, sendo azul/verde áreas com menor concentração e amarelo/vermelho áreas com maior concentração de casos.
+
+No mapa de 500 metros, observam-se muitos pequenos focos, com maior detalhamento local. Essa escala é útil para ações pontuais e operacionais, mas pode apresentar mais variações muito específicas do território. No de 1500 metros, os padrões tornam-se mais contínuos e estáveis, facilitando a identificação de áreas prioritárias em nível regional. Já no de 2500 metros, aparecem apenas grandes zonas de maior concentração, sendo mais adequado para decisões estratégicas em nível municipal.
+
+O importante é notar que a escala de análise influencia a forma como enxergamos o problema. O fenômeno é o mesmo, mas sua interpretação muda conforme a “lente” utilizada, algo fundamental para o planejamento e a tomada de decisão na gestão pública.
 
 ## Geoestatística
 
@@ -272,6 +288,14 @@ mapview(pontos_sf,
         col.regions = viridis(100, option = "plasma", direction = -1))
 ```
 
+#### **Semivariograma**
+
+Em Geoestatística, utilizamos amplamente o semivariograma para descrever e quantificar a dependência espacial de um fenômeno. Ele nos permite entender como a semelhança entre os valores observados varia em função da distância entre os pontos amostrais. Em termos práticos, o semivariograma responde à seguinte pergunta: pontos mais próximos tendem a apresentar valores mais parecidos?
+
+Ao calcular o semivariograma experimental, comparamos todos os pares de observações separados por uma determinada distância 
+$h$. Se pontos próximos apresentam valores semelhantes, a semivariância será pequena para pequenas distâncias. À medida que a distância aumenta, essa diferença tende a crescer, até atingir um patamar onde não há mais dependência espacial.
+
+
 * A determinação experimental do semivariograma, para cada valor de $x_i$, considera todos os pares de amostras $z(x)$ e $z(x+h)$, separadas pelo vetor distância $h$, a partir da equação: 
 
 ```{r echo=F, fig.align="center", out.width= "55%", fig.show='hold'}
@@ -296,6 +320,9 @@ include_graphics('figuras/variograma2.png')
 
 [*Fonte: Referência científica: Druck, S.; Carvalho, M.S.; Câmara, G.; Monteiro, A.V.M. (eds) "Análise Espacial de Dados Geográficos". Brasília, EMBRAPA, 2004](http://www.dpi.inpe.br/gilberto/livro/analise/cap3-superficies.pdf)
 
+Esse instrumento é fundamental porque serve de base para a modelagem espacial e para métodos de interpolação, como a krigagem. Em aplicações na gestão pública, por exemplo, no estudo da dengue, da qualidade da água ou da distribuição de indicadores socioeconômicos, o semivariograma permite identificar o alcance da influência espacial do fenômeno e orientar decisões sobre amostragem, monitoramento e planejamento territorial.
+
+Em síntese, o semivariograma é a ferramenta que traduz matematicamente a ideia de que *“o que está mais próximo tende a ser mais semelhante”*, permitindo transformar essa intuição em um modelo estatístico formal.
 
 * **Exemplo:** Mapa sobre o teor de argila no solo.
 
@@ -313,15 +340,9 @@ knitr::include_graphics('figuras/geoestatistica7.png')
 * O objetivo é a detecção e explicação de padrões e tendências observados entre áreas.
 
 
-### Mapa Temático
+### Mapas Temáticos
 
-* Taxas de câncer de pulmão na população branca masculina nos Estados Unidos, por condados no ano de 1998
-
-```{r echo=F, fig.align="center", out.width="70%"}
-knitr::include_graphics('figuras/area1_2019.png')
-```
-
-### Mapa Temático Mundial da Expectativa de Vida entre os Países
+#### **Mapa Temático Mundial da Expectativa de Vida entre os Países**
 
 ```{r, echo=T, out.width='90%'}
 library(tmap)
@@ -331,29 +352,407 @@ tmap_style("classic")
 qtm(World, fill = "life_exp")
 ```
 
+#### **Distribuição Geográfica do Produto Interno Bruto (PIB) Municipal no Estado do Rio de Janeiro - 2020**
+
+```{r, echo=T, out.width='90%'}
+# ----------------------------------------------------------------------------
+# 1. CARREGAR PACOTES NECESSÁRIOS
+# ----------------------------------------------------------------------------
+
+library(geobr)      # Para baixar shapes oficiais do IBGE
+library(sidrar)     # Para acessar dados da SIDRA/IBGE
+library(dplyr)      # Para manipulação de dados
+library(sf)         # Para trabalhar com dados espaciais
+library(tmap)       # Para mapas temáticos (alternativa ao ggplot2)
+library(ggplot2)    # Para gráficos e mapas
+library(viridis)    # Para escalas de cores
+```
+
+```{r, echo=T, out.width='90%'}
+# ----------------------------------------------------------------------------
+# 2. IMPORTAR DADOS ESPACIAIS (MUNICÍPIOS DO RJ)
+# ----------------------------------------------------------------------------
+
+# Baixar a malha municipal do estado do Rio de Janeiro
+# code_muni = 33 (código do estado do RJ)
+# year = 2020 (ano da malha - compatível com os dados do PIB)
+rj_mun <- read_municipality(code_muni = 33, year = 2020)
+
+# Visualizar rapidamente o mapa
+plot(rj_mun$geom, main = "Municípios do Estado do Rio de Janeiro")
+```
+
+
+```{r, echo=T, out.width='90%'}
+# ----------------------------------------------------------------------------
+# 3. IMPORTAR DADOS TABULARES (PIB MUNICIPAL)
+# ----------------------------------------------------------------------------
+
+# Tentar com PIB municipal (dados mais recentes)
+# Tabela 5938: Produto Interno Bruto dos Municípios
+# Variável 37: Valor adicionado bruto (PIB)
+# Período: 2020 (ano mais recente disponível)
+# geo = "City": nível municipal
+# geo.filter = list("State" = 33): filtrar apenas municípios do RJ
+
+pib_rj <- get_sidra(
+  x = 5938,                 # Tabela do PIB municipal
+  variable = 37,            # Valor adicionado bruto
+  period = "2020",          # Ano mais recente disponível
+  geo = "City",             # Nível geográfico municipal
+  geo.filter = list("State" = 33),  # Filtrar apenas RJ
+  classific = "all",        # Considera todas as classificações
+  header = TRUE             # Mantém nomes das colunas legíveis
+)
+
+```
+
+
+```{r, echo=T, out.width='90%'}
+# ----------------------------------------------------------------------------
+# 4. LIMPAR E PREPARAR OS DADOS TABULARES
+# ----------------------------------------------------------------------------
+
+pib_limpo <- pib_rj %>%
+  select(
+    # Use os nomes exatos que aparecerem no console
+    cod_munic = `Município (Código)`,  # Pode ser com acento ou sem
+    nome_munic = `Município`,
+    pib_valor = Valor,
+    ano = Ano
+  ) %>%
+  mutate(
+    # Converter PIB de mil reais para milhões de reais
+    pib_milhoes = pib_valor / 1000,
+    # Converter PIB de mil reais para bilhões de reais
+    pib_bilhoes = pib_valor / 1e6,
+    # Extrair código com 6 dígitos (removendo o dígito verificador)
+    cod_munic_6dig = substr(cod_munic, 1, 6)
+  )
+
+# Selecionar apenas as colunas relevantes e renomear
+pib_limpo <- pib_rj %>%
+  select(
+    cod_munic = `Município (Código)`,  # Código do município (ex: 3300100)
+    nome_munic = `Município`,           # Nome do município
+    pib_valor = Valor,                   # Valor do PIB em mil reais
+    ano = Ano                            # Ano de referência
+  ) %>%
+  mutate(
+    # Converter PIB de mil reais para milhões de reais
+    pib_milhoes = pib_valor / 1000,
+    # Converter PIB de mil reais para bilhões de reais
+    pib_bilhoes = pib_valor / 1e6,
+    # Extrair código com 6 dígitos para facilitar junção
+    cod_munic_6dig = substr(cod_munic, 1, 6)
+  )
+
+```
+
+
+```{r, echo=T, out.width='90%'}
+# ----------------------------------------------------------------------------
+# 5. JUNTAR DADOS ESPACIAIS E TABULARES
+# ----------------------------------------------------------------------------
+
+# No objeto rj_mun, o código do município está na coluna 'code_muni' (ex: 3300100)
+# No objeto pib_limpo, o código está em 'cod_munic_6dig' (ex: 330010)
+
+# Criar coluna com código de 6 dígitos no objeto espacial para facilitar a junção
+rj_mun <- rj_mun %>%
+  mutate(cod_munic_6dig = substr(code_muni, 1, 6))
+
+# Juntar os dados (left join mantém todas as geometrias)
+rj_completo <- rj_mun %>%
+  left_join(pib_limpo, by = c("cod_munic_6dig" = "cod_munic_6dig"))
+```
+
+```{r, echo=T, out.width='90%'}
+# ----------------------------------------------------------------------------
+# 6. MAPAS TEMÁTICOS COM GGPLOT2
+# ----------------------------------------------------------------------------
+
+# 6.1 Mapa básico - PIB contínuo
+mapa_continuo <- ggplot() +
+  geom_sf(data = rj_completo, 
+          aes(fill = pib_bilhoes),
+          color = "white", 
+          size = 0.2) +
+  scale_fill_viridis_c(
+    option = "plasma", 
+    name = "PIB (bi R$)",
+    direction = -1
+  ) +
+  labs(
+    title = "Produto Interno Bruto Municipal",
+    subtitle = "Estado do Rio de Janeiro - 2020",
+    caption = "Fonte: IBGE"
+  ) +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    axis.text = element_blank(),
+    axis.title = element_blank()
+  )
+
+print(mapa_continuo)
+```
+
+```{r, echo=T, out.width='90%'}
+# 6.2 Mapa com categorias de PIB
+rj_completo <- rj_completo %>%
+  mutate(
+    pib_categoria = case_when(
+      pib_bilhoes < 1 ~ "Até 1 bi",
+      pib_bilhoes < 5 ~ "1 a 5 bi",
+      pib_bilhoes < 10 ~ "5 a 10 bi",
+      pib_bilhoes < 50 ~ "10 a 50 bi",
+      pib_bilhoes >= 50 ~ "Acima de 50 bi"
+    )
+  )
+
+mapa_categorico <- ggplot() +
+  geom_sf(data = rj_completo, 
+          aes(fill = pib_categoria),
+          color = "white", 
+          size = 0.2) +
+  scale_fill_viridis_d(
+    option = "viridis", 
+    name = "Categorias"
+  ) +
+  labs(
+    title = "PIB Municipal por Categorias",
+    subtitle = "Estado do Rio de Janeiro - 2020",
+    caption = "Fonte: IBGE"
+  ) +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    axis.text = element_blank()
+  )
+
+print(mapa_categorico)
+
+```
+
 ### Matriz de Vizinhança
+
+A matriz de vizinhança é um instrumento fundamental da Estatística Espacial utilizado para representar formalmente quais áreas são consideradas vizinhas entre si. Em termos simples, ela transforma o mapa em uma estrutura matemática que indica quem é vizinho de quem.
+
+Imagine os municípios de um estado. No mapa, visualmente conseguimos perceber quais compartilham fronteiras. A matriz de vizinhança traduz essa informação em números: se dois municípios são vizinhos, atribuímos valor 1; se não são, atribuímos 0. O resultado é uma tabela quadrada (n × n), onde n é o número de municípios analisados.
 
 ```{r echo=F, fig.align="center", out.width="55%"}
 knitr::include_graphics('figuras/vizinhanca.png')
 ```
 
+#### **Exemplo Simplificado de Matriz de Vizinhança**
+
+**Municípios analisados:**  
+Rio de Janeiro, Niterói, São Gonçalo, Duque de Caxias, Nova Iguaçu  
+
+**Critério:** Contiguidade do tipo *Rainha*  
+(considera vizinhos os municípios que compartilham qualquer ponto de fronteira)
+
+
+|            | Rio | Niterói | S. Gonçalo | D. Caxias | N. Iguaçu |
+|:-----------|:---:|:-------:|:----------:|:---------:|:---------:|
+| **Rio**        |  0  |    1    |     1      |     1     |     1     |
+| **Niterói**    |  1  |    0    |     1      |     0     |     0     |
+| **S. Gonçalo** |  1  |    1    |     0      |     0     |     0     |
+| **D. Caxias**  |  1  |    0    |     0      |     0     |     1     |
+| **N. Iguaçu**  |  1  |    0    |     0      |     1     |     0     |
+---
+
+Notas:
+
+- **1** = municípios são vizinhos (compartilham fronteira)  
+- **0** = municípios não são vizinhos  
+A **diagonal principal é zero**, pois um município não é vizinho de si mesmo.
+
+Essa matriz é essencial porque muitos fenômenos da gestão pública apresentam dependência espacial. Ou seja, o que acontece em um município pode influenciar municípios vizinhos. Exemplos incluem:
+
+- Propagação de doenças (como dengue);
+- Dinâmica do desemprego;
+- Criminalidade;
+- Poluição ambiental;
+- Expansão urbana.
+
+Sem a matriz de vizinhança, os métodos utilizados na estatísticos estatística tratariam cada município como independente. Com ela, conseguimos incorporar a ideia de que “o território importa”.
+
+Existem diferentes critérios para definir vizinhança:
+
+- Contiguidade (compartilham fronteira);
+
+- Distância (municípios dentro de um raio específico);
+
+- k-vizinhos mais próximos (cada área tem um número fixo de vizinhos).
+
+A escolha do critério depende do problema de política pública analisado. Para doenças transmissíveis, por exemplo, a contiguidade territorial pode ser adequada. Já para fluxos econômicos, a distância ou conectividade pode fazer mais sentido.
+
+
+```{r, echo=T, out.width='90%'}
+# ============================================================================
+# MATRIZ DE VIZINHANÇA DOS MUNICÍPIOS DO RIO DE JANEIRO
+# ============================================================================
+
+library(spdep)
+# ============================================================================
+# 1. CRIAR A MATRIZ DE VIZINHANÇA
+# ============================================================================
+
+# Converter para objeto sp (formato exigido por alguns pacotes)
+# Mas o spdep também aceita sf diretamente
+rj_sp <- as(rj_mun, "Spatial")
+
+# Criar lista de vizinhos baseada em contiguidade (critério "rainha" - queen)
+# queen = TRUE considera vizinhos que compartilham qualquer ponto da fronteira
+vizinhos_rainha <- poly2nb(rj_mun, queen = TRUE)
+
+# Criar lista de vizinhos baseada em contiguidade (critério "torre" - rook)
+# queen = FALSE considera apenas vizinhos com fronteira lateral
+vizinhos_torre <- poly2nb(rj_mun, queen = FALSE)
+
+# Verificar o resultado
+summary(vizinhos_rainha)
+summary(vizinhos_torre)
+
+```
+
+| Item do Output                   | O que representa |
+|----------------------------------|------------------|
+| Number of regions               | Número total de unidades territoriais analisadas (ex.: municípios). |
+| Number of nonzero links         | Total de conexões de vizinhança existentes entre as áreas. |
+| Percentage nonzero weights      | Percentual de conexões existentes em relação ao total possível de conexões. |
+| Average number of links         | Número médio de vizinhos por unidade territorial. |
+| Link number distribution        | Distribuição do número de vizinhos entre as áreas analisadas. |
+| Least connected regions         | Unidades territoriais com menor número de vizinhos. |
+| Most connected regions          | Unidades territoriais com maior número de vizinhos. |
+
+
+```{r, echo=T, out.width='90%'}
+# ============================================================================
+# 2. CONVERTER PARA MATRIZ DE VIZINHANÇA (FORMATO TABELA)
+# ============================================================================
+
+# Converter lista de vizinhos para matriz binária
+matriz_vizinhos_rainha <- nb2mat(vizinhos_rainha, style = "B", zero.policy = TRUE)
+matriz_vizinhos_torre <- nb2mat(vizinhos_torre, style = "B", zero.policy = TRUE)
+
+# Visualizar as primeiras linhas e colunas da matriz
+print(matriz_vizinhos_rainha[1:10, 1:10])
+
+# Verificar dimensões (deve ser 92x92, pois são 92 municípios)
+dim(matriz_vizinhos_rainha)
+
+```
+
+
+```{r, echo=T, out.width='90%'}
+# ============================================================================
+# 3. CRIAR MAPA DA MATRIZ DE VIZINHANÇA
+# ============================================================================
+
+### 3.1 Mapa mostrando as conexões entre municípios ###
+
+#  Criar matriz de vizinhança (critério rainha)
+vizinhos <- poly2nb(rj_mun, queen = TRUE)
+
+# Extrair coordenadas dos centroides para desenhar as conexões
+centroides <- st_centroid(rj_mun$geom)
+coords <- st_coordinates(centroides)
+
+# Criar um data.frame com as conexões entre vizinhos
+conexoes <- data.frame()
+
+for(i in 1:length(vizinhos)) {
+  for(j in vizinhos[[i]]) {
+    if(i < j) {  # Evitar duplicatas
+      conexoes <- rbind(conexoes, 
+                        data.frame(
+                          x = coords[i, 1],
+                          y = coords[i, 2],
+                          xend = coords[j, 1],
+                          yend = coords[j, 2]
+                        ))
+    }
+  }
+}
+
+
+# Mapa com as conexões de vizinhança
+mapa_conexoes <- ggplot() +
+  # Primeiro layer: os municípios (em cinza claro)
+  geom_sf(data = rj_mun, fill = "gray90", color = "white", size = 0.2) +
+  # Segundo layer: as conexões entre vizinhos (linhas vermelhas)
+  geom_segment(data = conexoes, 
+               aes(x = x, y = y, xend = xend, yend = yend),
+               color = "red", alpha = 0.5, size = 0.3) +
+  # Terceiro layer: centroides dos municípios
+  geom_point(data = as.data.frame(coords), 
+             aes(x = X, y = Y), 
+             color = "blue", size = 0.5) +
+  labs(title = "Matriz de Vizinhança dos Municípios do RJ",
+       subtitle = "Conexões entre municípios vizinhos (critério rainha)",
+       caption = "Fonte: IBGE") +
+  # Tema
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    axis.text = element_blank(),
+    axis.title = element_blank()
+  )
+
+print(mapa_conexoes)
+
+```
+
 ### Moran Global, Moran Local e Lisa Map
 
-```{r echo=F, fig.align="center", out.width="20%", fig.cap="Moran Global"}
+🔎 **Moran Global**
+
+O Moran Global é uma medida sintética que avalia se existe autocorrelação espacial em todo o território analisado. Em outras palavras, ele indica se municípios vizinhos tendem a apresentar valores semelhantes para determinado indicador, como renda, taxa de mortalidade ou incidência de dengue. Quando o índice é positivo e estatisticamente significativo, significa que áreas próximas apresentam padrões semelhantes (alto com alto, baixo com baixo), revelando a existência de agrupamentos espaciais. Quando é próximo de zero, sugere ausência de padrão espacial. 
+
+O Moran Global é importante porque permite verificar se o fenômeno analisado possui organização territorial, indicando a necessidade de políticas regionais integradas em vez de intervenções isoladas.
+
+```{r echo=F, fig.align="center", out.width="40%", fig.cap=""}
 knitr::include_graphics('figuras/moran_global.png')
 ```
 
-```{r echo=F, fig.align="center", out.width="30%", fig.cap="Moran Local"}
+📍 **Moran Local (LISA)**
+
+O Moran Local, também conhecido como LISA (*Local Indicators of Spatial Association*), aprofunda a análise ao avaliar a autocorrelação espacial em cada unidade territorial individualmente. Diferentemente do Moran Global, que fornece um único valor para todo o estado ou país, o Moran Local identifica onde exatamente estão os agrupamentos espaciais e possíveis áreas atípicas. Ele permite classificar cada município como parte de um cluster de valores altos, um cluster de valores baixos ou como um ponto fora do padrão em relação aos seus vizinhos. Essa análise é fundamental para identificar territórios prioritários e direcionar recursos de forma mais estratégica.
+
+```{r echo=F, fig.align="center", out.width="30%", fig.cap=""}
 knitr::include_graphics('figuras/moran_local.png')
 ```
 
-* Desigualdade no nível distrital na cobertura de saúde reprodutiva, materna, neonatal e infantil na Índia
+🗺 **LISA Map**
+
+O LISA Map é a representação gráfica dos resultados do Moran Local. Ele mostra visualmente onde estão os agrupamentos significativos, como áreas de alto-alto (municípios com valores elevados cercados por vizinhos também elevados) ou baixo-baixo (municípios com baixos valores cercados por baixos). Também evidencia áreas atípicas, como municípios com desempenho muito diferente do entorno. Na prática, o LISA Map é uma ferramenta poderosa, pois transforma resultados estatísticos em informação territorial clara, facilitando a identificação de regiões críticas, a priorização de políticas públicas e o planejamento regional baseado em evidências espaciais.
+
+**Autocorrelação espacial dos casos confirmados de covid-19 em municípios sede de regionais
+de saúde e vizinhos, segundo a análise do Índice Local de Moran (LISA) Univariado. Paraná, Brasil,
+março de 2020 a janeiro de 2021.**
 
 ```{r echo=F, fig.align="center", out.width="90%"}
-knitr::include_graphics('figuras/moran_local2.png')
+knitr::include_graphics('figuras/moran_local3_covid.png')
 ```
 
-[Fonte: PANDA, Basant Kumar; KUMAR, Gulshan; AWASTHI, Ashish. District level inequality in reproductive, maternal, neonatal and child health coverage in India. BMC public health, v. 20, n. 1, p. 1-10, 2020.](https://bmcpublichealth.biomedcentral.com/articles/10.1186/s12889-020-8151-9)
+[COVRE, Eduardo Rocha et al. Correlação espacial da covid-19 com leitos de unidades de terapia intensiva no Paraná. Revista de Saúde Pública, v. 56, p. 14, 2022.](https://www.scielo.br/j/rsp/a/NDB7dYnVxgbtWPFskqxMgKR/?lang=pt)
+
+Na figura acima, observamos que o valor do Índice de Moran Global foi de $0,404$, com $p-valor < 0,001$, indicando uma autocorrelação espacial positiva moderada e estatisticamente significativa. Isso significa que a distribuição dos casos não ocorreu de forma aleatória no território paranaense – pelo contrário, municípios com taxas semelhantes de COVID-19 tenderam a se agrupar no espaço.
+
+Observando o mapa LISA (Indicadores Locais de Associação Espacial), podemos identificar diferentes padrões regionais. As áreas em vermelho (Alto-Alto) representam municípios com altas taxas da doença cercados por vizinhos igualmente afetados, formando verdadeiros "clusters de transmissão" que exigiam intervenções coordenadas e prioritárias. Por outro lado, as áreas em azul escuro (Baixo-Baixo) mostram regiões onde tanto o município quanto seus vizinhos mantiveram baixas taxas, sugerindo que estratégias de controle podem ter sido mais eficazes nessas localidades.
+
+As áreas em rosa (Alto-Baixo) e azul claro (Baixo-Alto) revelam situações de transição ou exceção, onde um município destoa do padrão de seus vizinhos. Estes são pontos de atenção para a vigilância em saúde, pois podem indicar locais onde a doença se comporta de forma diferente da região de entorno. Já as áreas em cinza (Não significante) não apresentaram padrão espacial definido, podendo refletir maior heterogeneidade local ou dinâmicas de transmissão mais complexas.
+
+🎯 Diferença resumida
+
+* Moran Global → Existe padrão espacial no estado como um todo ?
+
+* Moran Local (LISA) → Onde estão esses padrões ?
+
+* LISA Map → Visualização espacial desses agrupamentos.
 
 ### Modelos de Regressão Espacial
 
