@@ -82,9 +82,6 @@ colFmt <- function(x,color) {
 📥 [Clique aqui para baixar os dados que iremos utilizar durante as aulas](https://drive.google.com/drive/folders/1lBUWVYcwFDBqrxdz6s0oxaiCS8gAVWj7?usp=sharing)
 
 
-🌐 **Site oficial do pacote `queimadasR`** 
-👉 [Acessar documentação](https://wtassinari.github.io/queimadasR/)
-
 # Introdução à Estatística Espacial 
 
 ## O que é Estatística Espacial ?
@@ -172,11 +169,14 @@ knitr::include_graphics('figuras/coordenadas.png')
 
 ### Focos de incêndios ocorridos no estado do Rio de Janeiro/Brasil no mês de dezembro de 2025.
 
+🌐 **Site oficial do pacote `queimadasR`** 
+👉 [Acessar documentação](https://wtassinari.github.io/queimadasR/)
+
 ```{r, echo=T, out.width='90%'}
 library(readxl)
 
 # Carregar o arquivo
-dados_pontos <- read_excel("dados/queimadas_rio/queimadas_pontos.xlsx")
+dados_pontos <- read_excel("dados/queimadas/queimadas_pontos.xlsx")
 ```
 
 ```{r, echo=T, out.width='90%'}
@@ -184,12 +184,6 @@ library(sf)
 pontos_sf <- st_as_sf(dados_pontos, 
                       coords = c("longitude", "latitude"),
                       crs = 4326)
-```
-
-```{r, echo=T, out.width='90%'}
-library(geobr)
-# Baixar polígono do RJ (código IBGE = 33)
-rj <- read_state(code_state = 33, year = 2020)
 ```
 
 ```{r, echo=T, out.width='90%'}
@@ -266,7 +260,7 @@ O importante é notar que a escala de análise influencia a forma como enxergamo
 library(readxl)
 
 # Carregar o arquivo
-dados_geo <- read_excel("dados/queimadas_rio/queimadas_geo.xlsx")
+dados_geo <- read_excel("dados/queimadas/queimadas_geo.xlsx")
 ```
 
 ```{r, echo=T, out.width='90%'}
@@ -360,180 +354,155 @@ qtm(World, fill = "life_exp")
 # ----------------------------------------------------------------------------
 
 library(geobr)      # Para baixar shapes oficiais do IBGE
-library(sidrar)     # Para acessar dados da SIDRA/IBGE
-library(dplyr)      # Para manipulação de dados
-library(sf)         # Para trabalhar com dados espaciais
-library(tmap)       # Para mapas temáticos (alternativa ao ggplot2)
-library(ggplot2)    # Para gráficos e mapas
-library(viridis)    # Para escalas de cores
+library(readxl)
+library(dplyr)
+library(sf)
+library(ggplot2)
+library(geobr)
+library(scales)
+library(patchwork)
+library(stringr)
+library(tidyr)
+
 ```
 
 ```{r, echo=T, out.width='90%'}
-# ----------------------------------------------------------------------------
-# 2. IMPORTAR DADOS ESPACIAIS (MUNICÍPIOS DO RJ)
-# ----------------------------------------------------------------------------
+# ── 1. LER A PLANILHA ─────────────────────────────────────────────────────────
+# Ajuste o caminho se necessário
+dengue <- read_excel("dados/dengue/dengue2025.xlsx") |>
+    mutate(code_muni  = as.character(code_muni),
+           casos  = as.numeric(casos),
+           pop2022 = as.numeric(pop2022), 
+           incidencia = round(casos / pop2022 * 100000, 1))
 
-# Baixar a malha municipal do estado do Rio de Janeiro
-# code_muni = 33 (código do estado do RJ)
-# year = 2020 (ano da malha - compatível com os dados do PIB)
-rj_mun <- read_municipality(code_muni = 33, year = 2020)
+head(dengue)
+```
+
+```{r, echo=T, out.width='90%'}
+# ── 2. BAIXAR MALHA MUNICIPAL DO RJ ──────────────────────────────────────────
+rj_mun <- read_municipality(code_muni = 33, year = 2022) |>
+          mutate(code_muni  = as.character(code_muni))
 
 # Visualizar rapidamente o mapa
 plot(rj_mun$geom, main = "Municípios do Estado do Rio de Janeiro")
 ```
 
+```{r, echo=T, out.width='90%'}
+# ── 3. LEFT JOIN + TRATAR NAs ────────────────────────────────────────────────
+# Partindo do mapa (left) para manter TODOS os municípios mesmo sem casos
+mapa <- rj_mun |>
+  left_join(dengue, by = "code_muni") |> 
+  select(code_muni, municipio, pop2022, casos, incidencia)           
+```
 
 ```{r, echo=T, out.width='90%'}
-# ----------------------------------------------------------------------------
-# 3. IMPORTAR DADOS TABULARES (PIB MUNICIPAL)
-# ----------------------------------------------------------------------------
+# 4. MAPA CONTÍNUO (GRADIENTE DE CORES)
+ggplot() +
+  geom_sf(data = mapa, aes(fill = incidencia), color = "white", size = 0.2) +
+  scale_fill_viridis_c(option = "plasma", 
+                       name = "Incidência\n(por 100.000 hab)",
+                       direction = -1) +  # direction = -1 inverte a escala
+  theme_minimal() +
+  labs(title = "Incidência de Casos nos Municípios do RJ - 2025",
+       subtitle = "Escala Contínua",
+       caption = "Fonte: Dados fornecidos") +
+  theme(legend.position = "right",
+        plot.title = element_text(hjust = 0.5, face = "bold"),
+        plot.subtitle = element_text(hjust = 0.5),
+        axis.text = element_blank(),
+        axis.title = element_blank())         
+```
 
-# Tentar com PIB municipal (dados mais recentes)
-# Tabela 5938: Produto Interno Bruto dos Municípios
-# Variável 37: Valor adicionado bruto (PIB)
-# Período: 2020 (ano mais recente disponível)
-# geo = "City": nível municipal
-# geo.filter = list("State" = 33): filtrar apenas municípios do RJ
+```{r, echo=T, out.width='90%'}
+summary(mapa$incidencia)
+```
 
-pib_rj <- get_sidra(
-  x = 5938,                 # Tabela do PIB municipal
-  variable = 37,            # Valor adicionado bruto
-  period = "2020",          # Ano mais recente disponível
-  geo = "City",             # Nível geográfico municipal
-  geo.filter = list("State" = 33),  # Filtrar apenas RJ
-  classific = "all",        # Considera todas as classificações
-  header = TRUE             # Mantém nomes das colunas legíveis
+
+```{r, echo=T, out.width='90%'}
+# 5. MAPA CATEGÓRICO (CLASSIFICAÇÃO EM FAIXAS)
+# Criar categorias usando 5 classes com método quantil
+map_data <- mapa %>%
+  mutate(
+    incidencia_cat = cut(incidencia,
+                         breaks = c(0, 51.7, 723.5, 1791.9, 2375.7, 3779.5, 7458.7, Inf),
+                         labels = c("Mín - 51.7", 
+                                   "51.7 - 723.5", 
+                                   "723.5 - 1791.9", 
+                                   "1791.9 - 2375.7", 
+                                   "2375.7 - 3779.5", 
+                                   "3779.5 - 7458.7",
+                                   "> 7458.7"),
+                         include.lowest = TRUE,
+                         right = FALSE)
+  )
+
+ggplot() +
+  geom_sf(data = map_data, aes(fill = incidencia_cat), color = "white", size = 0.2) +
+  scale_fill_manual(values = viridis(7, option = "plasma", direction = -1),
+                    name = "Incidência\n(por 100.000 hab)",
+                    na.translate = FALSE) +
+  theme_minimal() +
+  labs(title = "Incidência de Casos nos Municípios do RJ",
+       subtitle = "Classificação por Quantis",
+       caption = "Fonte: SINAN") +
+  theme(legend.position = "right",
+        plot.title = element_text(hjust = 0.5, face = "bold"),
+        plot.subtitle = element_text(hjust = 0.5),
+        axis.text = element_blank(),
+        axis.title = element_blank())       
+```
+
+```{r, echo=T, out.width='90%'}
+
+library(classInt)
+library(classInt)
+library(dplyr)
+library(ggplot2)
+library(sf)
+library(viridis)
+
+# Calcular breaks Jenks
+jenks_breaks <- classIntervals(mapa$incidencia, n = 7, style = "jenks")$brks
+
+# Criar labels com os intervalos (formato igual ao da imagem, mas com os valores)
+jenks_labels <- c(
+  paste0(round(jenks_breaks[1], 1), " - ", round(jenks_breaks[2], 1)),
+  paste0(round(jenks_breaks[2], 1), " - ", round(jenks_breaks[3], 1)),
+  paste0(round(jenks_breaks[3], 1), " - ", round(jenks_breaks[4], 1)),
+  paste0(round(jenks_breaks[4], 1), " - ", round(jenks_breaks[5], 1)),
+  paste0(round(jenks_breaks[5], 1), " - ", round(jenks_breaks[6], 1)),
+  paste0(round(jenks_breaks[6], 1), " - ", round(jenks_breaks[7], 1)),
+  paste0("> ", round(jenks_breaks[7], 1))
 )
 
-```
-
-
-```{r, echo=T, out.width='90%'}
-# ----------------------------------------------------------------------------
-# 4. LIMPAR E PREPARAR OS DADOS TABULARES
-# ----------------------------------------------------------------------------
-
-pib_limpo <- pib_rj %>%
-  select(
-    # Use os nomes exatos que aparecerem no console
-    cod_munic = `Município (Código)`,  # Pode ser com acento ou sem
-    nome_munic = `Município`,
-    pib_valor = Valor,
-    ano = Ano
-  ) %>%
+# Criar a variável categórica
+mapa <- mapa %>%
   mutate(
-    # Converter PIB de mil reais para milhões de reais
-    pib_milhoes = pib_valor / 1000,
-    # Converter PIB de mil reais para bilhões de reais
-    pib_bilhoes = pib_valor / 1e6,
-    # Extrair código com 6 dígitos (removendo o dígito verificador)
-    cod_munic_6dig = substr(cod_munic, 1, 6)
+    incidencia_cat = cut(incidencia,
+                         breaks = jenks_breaks,
+                         labels = jenks_labels,
+                         include.lowest = TRUE,
+                         right = FALSE)
   )
 
-# Selecionar apenas as colunas relevantes e renomear
-pib_limpo <- pib_rj %>%
-  select(
-    cod_munic = `Município (Código)`,  # Código do município (ex: 3300100)
-    nome_munic = `Município`,           # Nome do município
-    pib_valor = Valor,                   # Valor do PIB em mil reais
-    ano = Ano                            # Ano de referência
-  ) %>%
-  mutate(
-    # Converter PIB de mil reais para milhões de reais
-    pib_milhoes = pib_valor / 1000,
-    # Converter PIB de mil reais para bilhões de reais
-    pib_bilhoes = pib_valor / 1e6,
-    # Extrair código com 6 dígitos para facilitar junção
-    cod_munic_6dig = substr(cod_munic, 1, 6)
-  )
-
-```
-
-
-```{r, echo=T, out.width='90%'}
-# ----------------------------------------------------------------------------
-# 5. JUNTAR DADOS ESPACIAIS E TABULARES
-# ----------------------------------------------------------------------------
-
-# No objeto rj_mun, o código do município está na coluna 'code_muni' (ex: 3300100)
-# No objeto pib_limpo, o código está em 'cod_munic_6dig' (ex: 330010)
-
-# Criar coluna com código de 6 dígitos no objeto espacial para facilitar a junção
-rj_mun <- rj_mun %>%
-  mutate(cod_munic_6dig = substr(code_muni, 1, 6))
-
-# Juntar os dados (left join mantém todas as geometrias)
-rj_completo <- rj_mun %>%
-  left_join(pib_limpo, by = c("cod_munic_6dig" = "cod_munic_6dig"))
-```
-
-```{r, echo=T, out.width='90%'}
-# ----------------------------------------------------------------------------
-# 6. MAPAS TEMÁTICOS COM GGPLOT2
-# ----------------------------------------------------------------------------
-
-# 6.1 Mapa básico - PIB contínuo
-mapa_continuo <- ggplot() +
-  geom_sf(data = rj_completo, 
-          aes(fill = pib_bilhoes),
-          color = "white", 
-          size = 0.2) +
-  scale_fill_viridis_c(
-    option = "plasma", 
-    name = "PIB (bi R$)",
-    direction = -1
-  ) +
-  labs(
-    title = "Produto Interno Bruto Municipal",
-    subtitle = "Estado do Rio de Janeiro - 2020",
-    caption = "Fonte: IBGE"
-  ) +
+# Plotar o mapa
+ggplot() +
+  geom_sf(data = mapa, aes(fill = incidencia_cat), color = "white", size = 0.2) +
+  scale_fill_manual(values = viridis(7, option = "plasma", direction = -1),
+                    name = "Incidência\n(por 100.000 hab)",
+                    na.translate = FALSE) +
   theme_minimal() +
-  theme(
-    panel.grid = element_blank(),
-    axis.text = element_blank(),
-    axis.title = element_blank()
-  )
-
-print(mapa_continuo)
+  labs(title = "Incidência de Casos nos Municípios do RJ",
+       subtitle = "Classificação por Quebras Naturais (Jenks)",
+       caption = "Fonte: SINAN") +
+  theme(legend.position = "right",
+        plot.title = element_text(hjust = 0.5, face = "bold"),
+        plot.subtitle = element_text(hjust = 0.5),
+        axis.text = element_blank(),
+        axis.title = element_blank())
 ```
 
-```{r, echo=T, out.width='90%'}
-# 6.2 Mapa com categorias de PIB
-rj_completo <- rj_completo %>%
-  mutate(
-    pib_categoria = case_when(
-      pib_bilhoes < 1 ~ "Até 1 bi",
-      pib_bilhoes < 5 ~ "1 a 5 bi",
-      pib_bilhoes < 10 ~ "5 a 10 bi",
-      pib_bilhoes < 50 ~ "10 a 50 bi",
-      pib_bilhoes >= 50 ~ "Acima de 50 bi"
-    )
-  )
 
-mapa_categorico <- ggplot() +
-  geom_sf(data = rj_completo, 
-          aes(fill = pib_categoria),
-          color = "white", 
-          size = 0.2) +
-  scale_fill_viridis_d(
-    option = "viridis", 
-    name = "Categorias"
-  ) +
-  labs(
-    title = "PIB Municipal por Categorias",
-    subtitle = "Estado do Rio de Janeiro - 2020",
-    caption = "Fonte: IBGE"
-  ) +
-  theme_minimal() +
-  theme(
-    panel.grid = element_blank(),
-    axis.text = element_blank()
-  )
-
-print(mapa_categorico)
-
-```
 
 ### Matriz de Vizinhança
 
@@ -647,64 +616,6 @@ dim(matriz_vizinhos_rainha)
 ```
 
 
-```{r, echo=T, out.width='90%'}
-# ============================================================================
-# 3. CRIAR MAPA DA MATRIZ DE VIZINHANÇA
-# ============================================================================
-
-### 3.1 Mapa mostrando as conexões entre municípios ###
-
-#  Criar matriz de vizinhança (critério rainha)
-vizinhos <- poly2nb(rj_mun, queen = TRUE)
-
-# Extrair coordenadas dos centroides para desenhar as conexões
-centroides <- st_centroid(rj_mun$geom)
-coords <- st_coordinates(centroides)
-
-# Criar um data.frame com as conexões entre vizinhos
-conexoes <- data.frame()
-
-for(i in 1:length(vizinhos)) {
-  for(j in vizinhos[[i]]) {
-    if(i < j) {  # Evitar duplicatas
-      conexoes <- rbind(conexoes, 
-                        data.frame(
-                          x = coords[i, 1],
-                          y = coords[i, 2],
-                          xend = coords[j, 1],
-                          yend = coords[j, 2]
-                        ))
-    }
-  }
-}
-
-
-# Mapa com as conexões de vizinhança
-mapa_conexoes <- ggplot() +
-  # Primeiro layer: os municípios (em cinza claro)
-  geom_sf(data = rj_mun, fill = "gray90", color = "white", size = 0.2) +
-  # Segundo layer: as conexões entre vizinhos (linhas vermelhas)
-  geom_segment(data = conexoes, 
-               aes(x = x, y = y, xend = xend, yend = yend),
-               color = "red", alpha = 0.5, size = 0.3) +
-  # Terceiro layer: centroides dos municípios
-  geom_point(data = as.data.frame(coords), 
-             aes(x = X, y = Y), 
-             color = "blue", size = 0.5) +
-  labs(title = "Matriz de Vizinhança dos Municípios do RJ",
-       subtitle = "Conexões entre municípios vizinhos (critério rainha)",
-       caption = "Fonte: IBGE") +
-  # Tema
-  theme_minimal() +
-  theme(
-    panel.grid = element_blank(),
-    axis.text = element_blank(),
-    axis.title = element_blank()
-  )
-
-print(mapa_conexoes)
-
-```
 
 ### Moran Global, Moran Local e Lisa Map
 

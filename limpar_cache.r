@@ -5,6 +5,9 @@ unlink(tempdir(), recursive = TRUE)
 unlink("index_cache", recursive = TRUE)
 unlink("index_files", recursive = TRUE)
 
+rm(list = ls()) # Limpar tudo do ambiente
+
+gc() # Forçar liberação de memória
 
 # Atualizando os pacotes envolvidos
 update.packages(ask = FALSE)
