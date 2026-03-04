@@ -838,7 +838,7 @@ dim(matriz_vizinhos_rainha)
 ```
   
   
-## Moran Global, Moran Local e Lisa Map
+## Autocorrelação espacial
 
 🔎 **Moran Global**
 
@@ -942,7 +942,7 @@ As áreas em rosa (Alto-Baixo) e azul claro (Baixo-Alto) revelam situações de 
 :::
 
   
-### 🗺️ LISA Map
+🗺 **LISA Map**
   
 O LISA Map é um mapa temático que representa graficamente os resultados do Índice de Moran Local, ele identifica:
   
@@ -977,6 +977,7 @@ Utilizando o índice de Moran Local (LISA), o estudo identifica padrões de auto
 ## Modelos de Regressão Espacial
 
 ### Introdução
+
 Além das análises exploratórias para os dados espaciais de área, é possível avançar na modelagem estatística dos dados por meio de modelos espaciais que consideram a dependência espacial dos dados. Entre os mais utilizados estão os modelos de autocorrelação espacial global, como o **SAR (Simultaneous Autoregressive Model)** e o **CAR (Conditional Autoregressive Model)** (CRESSIE, 1993). O modelo SAR incorpora a dependência espacial diretamente no valor da variável dependente, assumindo que o valor observado em uma região é influenciado pelos valores das regiões vizinhas. Já o modelo CAR considera essa dependência na estrutura do erro, sendo muito utilizado em abordagens bayesianas para modelagem de risco em áreas geográficas.
 
 Outra abordagem é a dos modelos com efeitos espaciais locais, como a **Regressão Geograficamente Ponderada (GWR)** (FOTHERINGHAM et al., 2002). Diferente dos modelos SAR e CAR, que assumem relações espaciais globais, o GWR permite que os coeficientes da regressão variem ao longo do espaço, ajustando uma equação específica para cada localidade. Isso possibilita identificar como os efeitos de uma variável explicativa sobre a resposta mudam de acordo com a localização, sendo especialmente útil em contextos onde há forte heterogeneidade espacial. 
