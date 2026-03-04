@@ -840,10 +840,11 @@ dim(matriz_vizinhos_rainha)
   
 ## Moran Global, Moran Local e Lisa Map
 
-### 🧮 Moran Global
-  
-Mede a autocorrelação espacial global, ou seja, se valores semelhantes estão agrupados no espaço.
+🔎 **Moran Global**
 
+O Moran Global é uma medida sintética que avalia se existe autocorrelação espacial em todo o território analisado. Em outras palavras, ele indica se municípios vizinhos tendem a apresentar valores semelhantes para determinado indicador, como renda, taxa de mortalidade ou incidência de dengue. Quando o índice é positivo e estatisticamente significativo, significa que áreas próximas apresentam padrões semelhantes (alto com alto, baixo com baixo), revelando a existência de agrupamentos espaciais. Quando é próximo de zero, sugere ausência de padrão espacial. 
+
+O Moran Global é importante porque permite verificar se o fenômeno analisado possui organização territorial, indicando a necessidade de políticas regionais integradas em vez de intervenções isoladas.
 
 $$I = \frac{ \sum_{i=1}^{n} \sum_{j=1}^{n} w_{ij} (y_i - \bar{y})(y_j - \bar{y}) }{ \sum_{i=1}^{n} (y_i - \bar{y})^2 }$$
   
@@ -867,7 +868,27 @@ Sabendo que:
 - \( w_{ij} = 1 \) se \( i \) e \( j \) são vizinhos, 0 caso contrário (ou ponderado).
 - O numerador mede a covariância espacial ponderada, e o denominador é a variância total de \( y \).
 
-### 🧮 Moran Local (LISA)
+#### Autocorrelação espacial dos casos de dengue nos municípios/RJ
+
+```{r, echo=T, out.width='90%'}
+pesos.viz <- nb2listw(vizinhos_torre)
+moran.test(mapa$casos, pesos.viz)
+```
+
+O resultado do teste de Moran’s I indicou autocorrelação espacial positiva estatisticamente significativa $(I = 0,0324; Z = 2,88; p = 0,0019)$. Como o valor observado é superior ao valor esperado $(E[I] = −0,0109)$ e o p-valor é inferior a $0,05$, rejeita-se a hipótese nula de ausência de dependência espacial. Isso sugere que municípios vizinhos tendem a apresentar valores semelhantes da variável analisada, caracterizando um padrão de agrupamento espacial. Contudo, apesar de estatisticamente significativo, o valor do índice é de baixa magnitude, indicando que a intensidade da autocorrelação espacial é relativamente fraca.
+
+#### Autocorrelação espacial para incidências de dengue nos municípios/RJ
+
+```{r, echo=T, out.width='90%'}
+pesos.viz <- nb2listw(vizinhos_torre)
+moran.test(mapa$incidencia, pesos.viz)
+```
+
+O teste de Moran indicou ausência de autocorrelação espacial significativa na incidência analisada $(I = −0,055; p-valor = 0,71)$. Como o valor do índice é próximo de zero e o $p-valor$ é superior a $0,05$, não há evidências para rejeitar a hipótese de aleatoriedade espacial. Assim, os dados não apresentam padrão de agrupamento ou dispersão no espaço, sugerindo que a variação observada não está associada à localização geográfica das áreas estudadas.
+
+📍 **Moran Local (LISA)**
+
+O Moran Local, também conhecido como LISA (*Local Indicators of Spatial Association*), aprofunda a análise ao avaliar a autocorrelação espacial em cada unidade territorial individualmente. Diferentemente do Moran Global, que fornece um único valor para todo o estado ou país, o Moran Local identifica onde exatamente estão os agrupamentos espaciais e possíveis áreas atípicas. Ele permite classificar cada município como parte de um cluster de valores altos, um cluster de valores baixos ou como um ponto fora do padrão em relação aos seus vizinhos. Essa análise é fundamental para identificar territórios prioritários e direcionar recursos de forma mais estratégica.
 
 Avalia a autocorrelação espacial **local**, permitindo identificar regiões com agrupamentos (clusters) ou comportamentos atípicos.
 
@@ -881,6 +902,34 @@ Sabendo que:
 - \( \bar{z} \): média da variável \( z \).
 - \( w_{ij} \): peso espacial entre as regiões \( i \) e \( j \).
 - A soma considera a influência dos vizinhos \( j \) sobre o ponto \( i \), ponderada pela matriz de vizinhança.
+
+🗺 **LISA Map**
+
+O LISA Map é a representação gráfica dos resultados do Moran Local. Ele mostra visualmente onde estão os agrupamentos significativos, como áreas de alto-alto (municípios com valores elevados cercados por vizinhos também elevados) ou baixo-baixo (municípios com baixos valores cercados por baixos). Também evidencia áreas atípicas, como municípios com desempenho muito diferente do entorno. Na prática, o LISA Map é uma ferramenta poderosa, pois transforma resultados estatísticos em informação territorial clara, facilitando a identificação de regiões críticas, a priorização de políticas públicas e o planejamento regional baseado em evidências espaciais.
+
+**Autocorrelação espacial dos casos confirmados de covid-19 em municípios sede de regionais
+de saúde e vizinhos, segundo a análise do Índice Local de Moran (LISA) Univariado. Paraná, Brasil,
+março de 2020 a janeiro de 2021.**
+
+```{r echo=F, fig.align="center", out.width="90%"}
+knitr::include_graphics('figuras/moran_local3_covid.png')
+```
+
+[COVRE, Eduardo Rocha et al. Correlação espacial da covid-19 com leitos de unidades de terapia intensiva no Paraná. Revista de Saúde Pública, v. 56, p. 14, 2022.](https://www.scielo.br/j/rsp/a/NDB7dYnVxgbtWPFskqxMgKR/?lang=pt)
+
+Na figura acima, observamos que o valor do Índice de Moran Global foi de $0,404$, com $p-valor < 0,001$, indicando uma autocorrelação espacial positiva moderada e estatisticamente significativa. Isso significa que a distribuição dos casos não ocorreu de forma aleatória no território paranaense – pelo contrário, municípios com taxas semelhantes de COVID-19 tenderam a se agrupar no espaço.
+
+Observando o mapa LISA (Indicadores Locais de Associação Espacial), podemos identificar diferentes padrões regionais. As áreas em vermelho (Alto-Alto) representam municípios com altas taxas da doença cercados por vizinhos igualmente afetados, formando verdadeiros "clusters de transmissão" que exigiam intervenções coordenadas e prioritárias. Por outro lado, as áreas em azul escuro (Baixo-Baixo) mostram regiões onde tanto o município quanto seus vizinhos mantiveram baixas taxas, sugerindo que estratégias de controle podem ter sido mais eficazes nessas localidades.
+
+As áreas em rosa (Alto-Baixo) e azul claro (Baixo-Alto) revelam situações de transição ou exceção, onde um município destoa do padrão de seus vizinhos. Estes são pontos de atenção para a vigilância em saúde, pois podem indicar locais onde a doença se comporta de forma diferente da região de entorno. Já as áreas em cinza (Não significante) não apresentaram padrão espacial definido, podendo refletir maior heterogeneidade local ou dinâmicas de transmissão mais complexas.
+
+🎯 Diferença resumida
+
+* Moran Global → Existe padrão espacial no estado como um todo ?
+
+* Moran Local (LISA) → Onde estão esses padrões ?
+
+* LISA Map → Visualização espacial desses agrupamentos.
 
 ::: box-dica2
 
@@ -1021,6 +1070,167 @@ $\rightarrow$ Quanto menor $d_{ij}$, maior é o peso de $j$ na estimação de $\
 
 [Fonte: ARDILLY, Pascal et al. Manuel d’analyse spatiale. 2018.](https://ec.europa.eu/eurostat/documents/3859598/9462709/INSEE-ESTAT-SPATIAL-ANA-18-EN.pdf)
 
+# 👉 Aplicações da Estatística Espacial 
+
+## Aplicação I: Estudo de John Snow
+
+- Segue algumas aplicações com os dados do pacote `cholera`, que contêm as localizações das mortes por cólera no famoso estudo de John Snow (Londres, 1854).
+
+```{r, echo=T, out.width='90%'}
+# install.packages("cholera")
+library(cholera)
+
+#  Mortes por cólera
+head(fatalities[,1:3])
+```
+
+```{r, echo=T, out.width='90%'}
+# Dados das Bombas de Água
+head(pumps[,1:4])
+```
+
+
+```{r, echo=T, out.width='90%'}
+# Visualizar mapa 
+snowMap(add.cases = TRUE, add.pumps = TRUE, case.col = "darkred")
+
+```
+
+```{r, echo=T, out.width='90%'}
+# Instalar e carregar pacotes necessários
+# install.packages(c("spatstat", "MASS", "sf", "raster"))
+library(spatstat)
+library(MASS)
+library(sf)
+library(raster)
+library(viridis)
+
+# Carregar dados
+data(fatalities)
+data(pumps)
+data(roads)
+```
+
+```{r, echo=T, out.width='90%'}
+# Kernel 2D simples
+kernel_simple <- kde2d(fatalities$x, fatalities$y, 
+                       n = 100,  # Resolução
+                       lims = c(range(fatalities$x), 
+                                range(fatalities$y)))
+
+# Plotar
+par(mfrow = c(1, 2))
+
+# Contorno
+contour(kernel_simple, 
+        main = "Densidade de Kernel - Contorno",
+        xlab = "Coordenada X", 
+        ylab = "Coordenada Y",
+        col = "darkred",
+        lwd = 2)
+points(fatalities$x, fatalities$y, pch = ".", col = "red")
+points(pumps$x, pumps$y, pch = 4, col = "blue", cex = 1.5, lwd = 2)
+
+# Imagem de calor
+image(kernel_simple, 
+      main = "Densidade de Kernel - Heatmap",
+      col = heat.colors(50))
+contour(kernel_simple, add = TRUE, col = "white")
+points(pumps$x, pumps$y, pch = 4, col = "blue", cex = 1.5, lwd = 2)
+```
+
+
+
+```{r, echo=T, out.width='90%'}
+#  Comparação de Diferentes Bandwidths
+# Criar diferentes kernels
+# Calcular cada kernel individualmente
+kernel_02 <- kde2d(fatalities$x, fatalities$y, h = 0.2, n = 100,
+                   lims = c(range(fatalities$x), range(fatalities$y)))
+
+kernel_05 <- kde2d(fatalities$x, fatalities$y, h = 0.5, n = 100,
+                   lims = c(range(fatalities$x), range(fatalities$y)))
+
+kernel_1 <- kde2d(fatalities$x, fatalities$y, h = 1, n = 100,
+                  lims = c(range(fatalities$x), range(fatalities$y)))
+
+kernel_2 <- kde2d(fatalities$x, fatalities$y, h = 2, n = 100,
+                  lims = c(range(fatalities$x), range(fatalities$y)))
+
+
+# --- Plot 1: bandwidths 0.2 e 0.5 ---
+par(mfrow = c(1, 2))
+
+image(kernel_02, main = "Bandwidth = 0.2", col = terrain.colors(50), xlab = "X", ylab = "Y")
+contour(kernel_02, add = TRUE, col = "white", lwd = 0.5)
+points(pumps$x, pumps$y, pch = 4, col = "blue", cex = 1.2, lwd = 1.5)
+mtext(paste("Mortes:", nrow(fatalities)), side = 3, line = 0.3, cex = 0.8)
+
+image(kernel_05, main = "Bandwidth = 0.5", col = terrain.colors(50), xlab = "X", ylab = "Y")
+contour(kernel_05, add = TRUE, col = "white", lwd = 0.5)
+points(pumps$x, pumps$y, pch = 4, col = "blue", cex = 1.2, lwd = 1.5)
+mtext(paste("Mortes:", nrow(fatalities)), side = 3, line = 0.3, cex = 0.8)
+
+
+# --- Plot 2: bandwidths 1 e 2 ---
+par(mfrow = c(1, 2))
+
+image(kernel_1, main = "Bandwidth = 1", col = terrain.colors(50), xlab = "X", ylab = "Y")
+contour(kernel_1, add = TRUE, col = "white", lwd = 0.5)
+points(pumps$x, pumps$y, pch = 4, col = "blue", cex = 1.2, lwd = 1.5)
+mtext(paste("Mortes:", nrow(fatalities)), side = 3, line = 0.3, cex = 0.8)
+
+image(kernel_2, main = "Bandwidth = 2", col = terrain.colors(50), xlab = "X", ylab = "Y")
+contour(kernel_2, add = TRUE, col = "white", lwd = 0.5)
+points(pumps$x, pumps$y, pch = 4, col = "blue", cex = 1.2, lwd = 1.5)
+mtext(paste("Mortes:", nrow(fatalities)), side = 3, line = 0.3, cex = 0.8)
+
+```
+
+
+```{r, echo=T, out.width='90%'}
+# Kernel 3D 
+
+library(plotly)
+
+# Calcular kernel
+kernel_3d <- kde2d(fatalities$x, fatalities$y, n = 50)
+
+# Criar plot 3D
+plot_ly() |>
+  add_surface(
+    x = kernel_3d$x,
+    y = kernel_3d$y,
+    z = kernel_3d$z,
+    colorscale = list(c(0, "white"), c(1, "red")),
+    opacity = 0.8,
+    name = "Densidade"
+  ) |>
+  add_markers(
+    x = fatalities$x,
+    y = fatalities$y,
+    z = rep(0, nrow(fatalities)),
+    marker = list(size = 3, color = "black", symbol = "circle"),
+    name = "Mortes"
+  ) |>
+  add_markers(
+    x = pumps$x,
+    y = pumps$y,
+    z = rep(0, nrow(pumps)),
+    marker = list(size = 8, color = "blue", symbol = "x"),
+    name = "Bombas"
+  ) |>
+  layout(
+    title = "DENSIDADE 3D DO SURTO DE CÓLERA",
+    scene = list(
+      xaxis = list(title = "Coordenada X"),
+      yaxis = list(title = "Coordenada Y"),
+      zaxis = list(title = "Densidade"),
+      camera = list(eye = list(x = 1.5, y = 1.5, z = 1.5))
+    ),
+    showlegend = TRUE
+  )
+```
 
 
 # 📚 Bibliografia sugerida
