@@ -64,259 +64,482 @@ klippy::klippy(
 ```{r}
 ## Color Format
 colFmt <- function(x,color) {
-  
-  outputFormat <- knitr::opts_knit$get("rmarkdown.pandoc.to")
-  
-  if(outputFormat == 'latex') {
-    ret <- paste("\\textcolor{",color,"}{",x,"}",sep="")
-  } else if(outputFormat == 'html') {
-    ret <- paste("<font color='",color,"'>",x,"</font>",sep="")
-  } else {
-    ret <- x
-  }
 
-  return(ret)
-}
+outputFormat <- knitr::opts_knit$get("rmarkdown.pandoc.to")
+
+   if(outputFormat == 'latex') {
+     ret <- paste("\\textcolor{",color,"}{",x,"}",sep="")
+   } else if(outputFormat == 'html') {
+     ret <- paste("<font color='",color,"'>",x,"</font>",sep="")
+   } else {
+     ret <- x
+   }
+
+   return(ret)
+ }
 ```
 
-📥 [Clique aqui para baixar os dados que iremos utilizar durante as aulas](https://drive.google.com/drive/folders/1lBUWVYcwFDBqrxdz6s0oxaiCS8gAVWj7?usp=sharing)
+# 📍 Introdução à Estatística Espacial 
 
-
-# Introdução à Estatística Espacial 
-
-## O que é Estatística Espacial ?
+## O que é Análise Estatística Espacial ?
 
 - São métodos estatísticos que levam em consideração a localização espacial do fenômeno estudado;
 
-- Segundo Bailey & Gatrell (1995), *"Análise estatística espacial pode ser realizada quando os dados são espacialmente localizados e se considera explicitamente a possível importância de seu arranjo espacial na análise ou interpretação dos resultados"*
+- Segundo Bailey & Gatrell (1995), *"A análise estatística espacial é aplicada quando os dados possuem localização geográfica e quando o arranjo espacial desses dados é considerado relevante para a análise e interpretação dos resultados."*
 
-- A primeira pergunta a ser feita é: A distribuição dos dados apresenta um padrão aleatório ou apresenta uma agregação definida (*clusters*) ?
+- A primeira questão a ser considerada é: os dados seguem um padrão aleatório ou indicam a presença de agregações bem definidas (*clusters*) ?
 
-```{r echo=F, fig.align="center", out.width= "70%", fig.show='hold'}
-knitr::include_graphics('figuras/imagem1.jpg')
+```{r echo=F, fig.align="center", out.width= "80%", fig.show='hold'}
+knitr::include_graphics('figuras/Cluster.png')
 ```
 
 ## Origem da Estatística Espacial
 
-- Dr. John Snow (1813-1858) $\rightarrow$ Considerado pai da Epidemiologia Moderna
+O uso de dados espaciais na saúde teve um marco histórico com John Snow, que em 1854 mapeou um surto de cólera em Londres, desafiando a teoria miasmática* ao identificar a contaminação da água como causa da doença. Ao mapear as mortes por cólera no Soho, John Snow identificou um foco ao redor da bomba de água da Broad Street, apoiando sua hipótese de transmissão hídrica.
+
+<span style="font-size: 10px;">
+*"Miasmática" refere-se à teoria que defendia que as doenças eram causadas por vapores ou odores nocivos (miasmas) provenientes de matéria orgânica em decomposição, particularmente em áreas úmidas ou com má higiene.
+</span>
 
 
 ```{r echo=F, fig.align="center", out.width= "80%", fig.show='hold'}
 include_graphics('figuras/snow2_2019.png')
 ```
+<span style="font-size: 11px;">
+- Mapeamento dos casos de coléra ($\bullet$) e as bombas de água (X) em Londres, 1854.
+</span>
 
-Mapeamento dos casos de coléra ($\bullet$) e as bombas de água (X) em Londres, 1854.
-
+- Dr. John Snow (1813-1858) $\rightarrow$ Considerado pai da Epidemiologia Moderna
 
 ```{r echo=F, fig.align="center", out.width= "40%", fig.show='hold'}
 include_graphics('figuras/snow_2019.png')
 ```
+\
 
+A imagem mostra homenagens a John Snow em Soho, Londres: um retrato na fachada de um pub, a réplica da bomba de água da Broad Street, e uma placa que marca a descoberta de que a cólera era transmitida pela água contaminada em 1854.
 
 ## Objetivos da Estatística Espacial
 
-1) Análise de padrões espaciais e espaço-temporais (ex: Análise
-Exploratória Espacial, Correlação Espacial)
+1) Investigar padrões espaciais e espaço-temporais, por meio de técnicas como a Análise Exploratória de Dados Espaciais (AEDE) e medidas de correlação espacial, visando identificar estruturas, agrupamentos e dependências nos dados geográficos.
 
-2) Modelagem Espacial (ex: Modelos Estatísticos de Regressão
-Espacial)
+2) Modelar fenômenos espaciais utilizando modelos estatísticos apropriados, como regressões espaciais (ex: SAR, CAR, GWR) e modelos espaço-temporais, que permitem controlar efeitos de vizinhança (dependência espacial) e heterogeneidade geográfica, com o objetivo de explicar e/ou prever fenômenos influenciados pela localização geográfico.
 
 ## Dependência Espacial ou Autocorrelação Espacial
 
-- "Independência é um pressuposto muito conveniente que faz
-grande parte da teoria estatística matemática tratável.
-Entretanto, modelos que envolvem dependência estatística são
-frequentemente mais realísticos. . . . Neste tipos de dados a
-dependência está presente em todas as direções e fica mais
-fraca a medida em que aumenta a dispersão na localização dos
-dados." (Cressie N.,1991)
+- Segundo Cressie (1991), embora a suposição de independência entre observações torne a teoria estatística mais tratável, modelos que incorporam *dependência estatística* costumam ser mais realistas, especialmente em contextos espaciais. Nesse tipo de dado, a *dependência entre observações ocorre em múltiplas direções* e tende a diminuir conforme aumenta a distância entre os locais amostrados. Em outras palavras, valores próximos no espaço tendem a ser mais semelhantes entre si do que valores distantes, o que caracteriza a autocorrelação espacial.
 
-- *"Todas as coisas se parecem, coisas mais próximas são mais parecidas que
-aquelas mais distantes."*  (Tobler, 1979). `r colFmt(" **Também conhecida como $1^a$ Lei da Geografia**",'red')`
+- *"Todas as coisas se parecem, porém coisas mais próximas tendem a ser mais semelhantes do que aquelas mais distantes."*  (Tobler, 1979). `r colFmt(" **Também conhecida como $1^a$ Lei da Geografia**",'red')`
 
-# Tipologia dos Dados Espaciais
+# 🧩 Tipologia dos Dados Espaciais
 
-Os diferentes tipos de dados espaciais são tradicionalmente classificados de acordo com uma tipologia. Esta caracterização diz respeito a natureza estocástica da observação.
+Os dados espaciais podem ser classificados segundo diferentes categorias, com base na natureza estocástica de suas observações e na forma como a informação geográfica é representada. Essa tipologia orienta a escolha de métodos estatísticos apropriados para análise.
 
-Noel Cressie (1993) divide a estatı́stica espacial em 3 grandes áreas:
+Segundo Noel Cressie (1993), a estatística espacial pode ser dividida em três grandes áreas:
 
-  i) `r colFmt(" **Dados de processos pontuais**",'darkmagenta')`
+i) `r colFmt(" **Dados de Processos Pontuais ou Padrões Pontuais**",'darkmagenta')`: As observações ocorrem de maneira aleatória no espaço, como casos de uma doença, localização de crimes ou ocorrência de focos de queimadas. O objetivo é entender padrões de agrupamento, dispersão ou aleatoriedade desses pontos.
 
-  ii) `r colFmt(" **Dados de geoestatística**",'darkmagenta')`
+ii) `r colFmt(" **Dados de Geoestatística**",'darkmagenta')`: Refere-se as observações que apresentam um atributo mensuravél em localizações contínuas ou irregulares (por exemplo, temperatura, poluição, altitude, teor de argila). Nesses casos, há interesse na dependência espacial entre valores próximos e na interpolação de valores para locais não amostrados, por meio de métodos como krigagem.
 
-  iii) `r colFmt(" **Dados de área**",'darkmagenta')`
-
-Existem métodos estatı́sticos diferentes para descrever ou analisar estes tipos de dados. Exemplo:
-
-```{r echo=F, fig.align="center", out.width= "85%", fig.show='hold'}
-include_graphics('figuras/slide4.jpg')
-
-```
+iii) `r colFmt(" **Dados de Área**",'darkmagenta')`: Representam fenômenos agregados por unidades geográficas, como municípios, distritos ou setores censitários. As análises incluem autocorrelação espacial (ex: I de Moran) e modelos de regressão espacial adaptados a dados agregados.
 
 ## Padrões Pontuais
 
-* O principal interesse está no conjunto de coordenadas geográficas representando as localizações exatas de eventos.
+O principal interesse está no conjunto de coordenadas geográficas representando as localizações exatas de eventos.
 
-* Exemplos: Localização de crimes, localização da residência dos casos de dengue, localização de espécies vegetais, etc.
-
-* Neste caso, o dado aleatório de interesse é a localização espacial do evento.
+* Estrutura dos dados com padrão de pontos
 
 
-```{r echo=F, fig.align="center", message=FALSE, warning=FALSE, comments=NA, out.width="40%", comment=NA}
-knitr::include_graphics('figuras/coordenadas.png')
+  |   Latitude   |  Longitude | 
+  |:-----------:|:------------:|
+  |   -22.90    |   -43.20     |  
+  |   -22.91    |   -43.22     |   
+  |   -22.92    |   -43.18     |  
+  |    ...   | ... |
+  
+```{r echo=FALSE, fig.align="center", out.width="80%", fig.cap="<span style='font-size:9px'>Fonte: Elaboração própria com auxílio do ChatGPT (OpenAI), 2026.</span>"}
+include_graphics('figuras/padroes_pontuais.png')
 ```
 
+**Exemplos de aplicação:**
 
-### Focos de incêndios ocorridos no estado do Rio de Janeiro/Brasil no mês de dezembro de 2025.
+::: box-dica3
+  - 🏥 Localização de casos de uma doença notificados em uma cidade.
+  - 🌳 Distribuição espacial de árvores em um parque urbano.
+  - 🐾 Registros de avistamentos de animais silvestres em uma reserva.
+  - 🔥 Pontos de ocorrência de focos de incêndio florestal detectados por satélite.
+  - 🔫 Registros de ocorrências de crimes em uma área urbana.
+:::
+
+## Geoestatística
+  
+Dados usados em geoestatística são atributos contínuos medidos em localizações fixas, na maioria das vezes amostrados no espaço geográfico, e que queremos analisar para entender como um fenômeno varia no espaço.
+
+* Estrutura dos dados geoestatísticos
+
+
+  |   Latitude   |  Longitude   | Atributo Mensurado |
+  |:-----------:|:------------:|:----------------:|
+  |   -22.90    |   -43.20     |       5.4        |
+  |   -22.91    |   -43.22     |       6.1        |
+  |   -22.92    |   -43.18     |       5.9        |
+  |    ...   | ... | ... |
+  
+  
+```{r echo=FALSE, fig.align="center", out.width="80%", fig.cap="<span style='font-size:9px'>Fonte: Elaboração própria com auxílio do ChatGPT (OpenAI), 2026.</span>"}
+include_graphics('figuras/dados_geoestatisticos.png')
+```
+
+**Exemplos de aplicação:**
+  
+::: box-dica3
+  - 🌧️ Medição da quantidade de chuva em diferentes locais de uma cidade.</li>
+  - 🦟 Contagem de ovos de Aedes aegypti em ovitrampas.</li>
+  - 🌫️ Concentração de poluentes no ar em pontos georreferenciados.</li>
+  - 🌽 Análise da produtividade agrícola em diferentes talhões de uma fazenda.</li>
+  
+:::
+  
+* Umas das aplicações mais importantes da geoestatística é a interpolação de dados, ou seja, estimação de valores em locais onde não há medição.
+
+
+::: box-dica2
+Neste tipo de dado, o evento aleatório de interesse é a posição espacial onde o fenômeno ocorre, e não uma variável medida em si. A análise busca entender se os pontos seguem um padrão aleatório, agrupado (clusters) ou disperso no espaço.
+
+:::
+  
+## Dados de Área
+
+Na análise espacial por áreas, o atributo de interesse costuma ser uma medida agregada (como contagem de casos, taxa de mortalidade, média de renda, etc.) calculada dentro de uma unidade geográfica bem definidas (como bairros, municípios, setores censitários ou regiões administrativas.)
+
+Essas áreas são representadas por polígonos, que podem ter formas irregulares e manter relações espaciais com as áreas vizinhas, seja por fronteiras compartilhadas, conexões físicas (como estradas e rios), ou por semelhanças em características socioeconômicas (como nível de renda ou acesso a serviços).
+
+::: box-dica2
+O objetivo da análise de dados de área é identificar, explicar e interpretar padrões espaciais e tendências que ocorrem entre essas unidades geográficas pré-definidas.
+
+:::
+
+* Estrutura dos dados de área
+
+
+  |   Polígono   |  Nome do Polígono   | Atributo Mensurado |
+  |:-----------:|:------------:|:----------------:|
+  |   110920    |  Alta Esperança     |       1000,50        |
+  |   123690    |  Divino     |       963,56        |
+  |   130269    |  Dourados     |       801,01        |
+    |    ...   | ... | ... |
+
+```{r echo=FALSE, fig.align="center", out.width="80%", fig.cap="<span style='font-size:9px'>Fonte: Elaboração própria com auxílio do ChatGPT (OpenAI), 2026.</span>"}
+      
+include_graphics('figuras/dados_area.png')
+```
+
+**Exemplos de aplicação:**
+
+::: box-dica3
+
+  - 🦟 Taxa de incidência de dengue por bairro em uma cidade.
+  - 💸 Renda per capita por setor censitário.
+  - 🌽 Produtividade agrícola por microrregião.
+  - 🏫 Taxa de evasão escolar por município.
+  - 🚔 Taxa de criminalidade por distrito policial.
+  - 📦 Volume de vendas por zona de entrega.
+:::
+
+# 🗃️ Dados utilizados no curso
+
+📥 [Clique aqui para baixar os dados que iremos utilizar durante as aulas](https://drive.google.com/drive/folders/1lBUWVYcwFDBqrxdz6s0oxaiCS8gAVWj7?usp=sharing)
+
+1) Basta baixar o arquivo `Estatistica_Espacial.zip` e descomprimir;
+
+2) Clicar no arquivo que representa o projeto em R `Estatistica_Espacial.Rproj`
+
+
+# 🛠️ Algumas Ferramentas para Estatística Espacial
+  
+## SiG QGIS
+  
+```{r echo=F, fig.align="center", out.width="80%"}
+knitr::include_graphics('figuras/QGIS.png')
+```
+  
+[QGIS: Um Sistema de Informação Geográfica livre e aberto](https://www.qgis.org/pt_BR/site/)
+  
+## GEODA
+  
+```{r echo=F, fig.align="center", out.width="80%"}
+knitr::include_graphics('figuras/GEODA.png')
+```
+  
+[GEODA: AN INTRODUCTION TO SPATIAL DATA ANALYSIS](https://spatial.uchicago.edu/geoda)
+  
+  
+## R
+  
+```{r echo=FALSE, fig.align="center", out.width="80%", fig.cap="<span style='font-size:9px'>Fonte: Elaboração própria com auxílio do modelo de IA Gemini (GOOGLE, 2026).</span>"}
+knitr::include_graphics('figuras/logo_ubuntu.png')
+```
+  
+Fonte: [Dicas para integração e instalação do R 4.2 no Ubuntu 22.04 LTS e os pacotes espaciais](https://rtask.thinkr.fr/installation-of-r-4-2-on-ubuntu-22-04-lts-and-tips-for-spatial-packages/)
+  
+  
+## Python
+  
+```{r echo=F, fig.align="center", out.width="60%"}
+knitr::include_graphics('figuras/geopandas.png')
+```
+  
+Fonte: [Github Geopandas](https://geopandas.org/en/stable/)
+  
+  
+# 📚 Bibliotecas R utilizadas no curso
+
+### 📦 Manipulação e Leitura de Dados
+| Biblioteca     | Funcionalidade                                                              |
+  |----------------|------------------------------------------------------------------------------|
+  | `dplyr`        | Manipulação eficiente de dados (filtrar, agrupar, resumir, etc.)             |
+  | `readr`        | Leitura rápida de arquivos `.csv`, `.tsv`, etc.                              |
+  | `tidyverse`    | Conjunto de pacotes para ciência de dados (inclui `ggplot2`, `dplyr`, etc.)  |
+  
+---
+  
+### 📊 Visualização Gráfica (Gráficos, Mapas e Paletas)
+  
+  | Biblioteca       | Funcionalidade                                                                 |
+  |------------------|---------------------------------------------------------------------------------|
+  | `ggplot2`        | Sistema gráfico baseado em camadas para criação de gráficos sofisticados        |
+  | `tmap`           | Criação de mapas temáticos estáticos e interativos                              |
+  | `leaflet`        | Geração de mapas interativos baseados em JavaScript                             |
+  | `leaflet.extras2`| 	Extensões avançadas para leaflet, mini mapas e outros widgets                             |
+  | `leafem`         | Funcionalidades adicionais ao leaflet, como coordenadas do mouse, zoom por camada etc.                             |
+  | `ggspatial`      | Adiciona elementos cartográficos ao `ggplot2` (ex: escalas, bússolas)           |
+  | `vioplot`        | Geração de gráficos do tipo violin plot                                         |
+  | `RColorBrewer`   | Paletas de cores predefinidas para mapas e gráficos                             |
+  | `colorspace`     | Manipulação e criação de paletas de cores                                       |
+  
+  
+---
+  
+  
+### 🌍 Dados Espaciais e Geoprocessamento
+  | Biblioteca     | Funcionalidade                                                                  |
+  |----------------|----------------------------------------------------------------------------------|
+  | `sf`           | Manipulação de dados espaciais com o padrão Simple Features                     |
+  | `sp`           | Estrutura clássica para dados espaciais (anterior ao `sf`)                       |
+  | `geobr`        | Importa mapas do Brasil (IBGE, municípios, estados, etc.)                        |
+  | `maptools`     | Leitura e manipulação de dados espaciais vetoriais                              |
+  | `raster`       | Leitura e análise de dados geográficos em formato raster                         |
+  | `lattice`      | Sistema gráfico útil para visualização multivariada com suporte espacial         |
+  
+  ---
+  
+### 📈 Estatística Espacial e Modelagem
+  | Biblioteca     | Funcionalidade                                                                         |
+  |----------------|-----------------------------------------------------------------------------------------|
+  | `spatstat`     | Análise de padrões de pontos no espaço bidimensional                                   |
+  | `spdep`        | Cálculo de dependência e autocorrelação espacial (ex: Moran, Geary)                     |
+  | `spatialreg`   | Modelagem de regressão espacial (ex: SAR, SEM, SDM)                                     |
+  | `spgwr`        | Regressão ponderada geograficamente (GWR)                                               |
+  | `gstat`        | Geoestatística e krigagem                                                               |
+  | `automap`      | Krigagem automatizada com ajuste automático de variogramas     
+
+
 
 🌐 **Site oficial do pacote `queimadasR`** 
-👉 [Acessar documentação](https://wtassinari.github.io/queimadasR/)
-
+  👉 [Acessar documentação](https://wtassinari.github.io/queimadasR/)
+  
+# 📍 Dados do tipo Padrões Pontuais
+  
+## Focos de incêndios ocorridos no estado do Rio de Janeiro/Brasil no mês de dezembro de 2025.
+  
 ```{r, echo=T, out.width='90%'}
 library(readxl)
-
+  
 # Carregar o arquivo
 dados_pontos <- read_excel("dados/queimadas/queimadas_pontos.xlsx")
 ```
-
+  
 ```{r, echo=T, out.width='90%'}
 library(sf)
 pontos_sf <- st_as_sf(dados_pontos, 
                       coords = c("longitude", "latitude"),
-                      crs = 4326)
+                       crs = 4326)
 ```
-
+  
 ```{r, echo=T, out.width='90%'}
 library(geobr)
+
 # Baixar polígono do RJ (código IBGE = 33)
 rj <- read_state(code_state = 33, year = 2020)
 ```
+  
+```{r, echo=T, out.width='90%'}
+library(geobr)
 
+# Baixar polígono do RJ (código IBGE = 33)
+rj <- read_state(code_state = 33, year = 2020)
+```
+  
 ```{r, echo=T, out.width='90%'}
 library(ggplot2)
 # Plotar
 ggplot() +
-  geom_sf(data = rj, fill = "lightgreen", color = "black") +
-  geom_sf(data = pontos_sf, color = "red", size = 1.0, alpha = 0.7) +
-  labs(title = "Focos de Queimadas - Rio de Janeiro",
+   geom_sf(data = rj, fill = "lightgreen", color = "black") +
+   geom_sf(data = pontos_sf, color = "red", size = 1.0, alpha = 0.7) +
+   labs(title = "Focos de Queimadas - Rio de Janeiro",
        caption = "Fonte: INPE") +
   theme_minimal()
 ```
-
+  
 ### Possíveis distribuições dos pontos
-
+  
 ```{r echo=F, fig.align="center", out.width= "65%", fig.show='hold'}
 knitr::include_graphics('figuras/Cluster2.png')
 ```
-
+  
 ### Investigando os padrões pontuais
-
-
-
+  
+  
 ```{r echo=F, fig.align="center", message=FALSE, warning=FALSE, comments=NA, out.width="70%", comment=NA}
 knitr::include_graphics('figuras/pontos1.jpg')
 ```
-
-
-### Estimativas de Kernel (ou Mapas de Calor)
-
-
-
-```{r echo=F, fig.align="center", out.width= "60%", fig.show='hold'}
+  
+  
+## Estimativas de Kernel (ou Mapas de Calor)
+  
+As estimativas de densidade kernel são uma técnica amplamente utilizada para **representar visualmente a concentração espacial de eventos pontuais**, como casos de doenças, crimes ou ocorrências de focos de calor. Essa abordagem transforma um conjunto de pontos em uma superfície contínua de intensidade, evidenciando áreas com maior ou menor densidade (nesse caso a frequencia) de eventos.
+  
+```{r echo=FALSE, fig.align="center", out.width="60%", fig.cap="Localização da ocorrência de casos de dengue em Belo Horizonte/MG"}
+  knitr::include_graphics('figuras/dengueBH.png')
+```
+  
+A técnica foi aplicada para identificar áreas de maior risco de dengue em Belo Horizonte/MG. O mapa resultante revela zonas de alta concentração de casos, o que pode subsidiar ações de controle vetorial e políticas públicas de saúde mais direcionadas.
+  
+O objetivo principal é estimar a função de intensidade espacial $\hat{\lambda}_{\tau}(u)$, que descreve a probabilidade de ocorrência de eventos em diferentes locais da região de estudo.
+  
+  
+```{r echo=F, fig.align="center", out.width= "45%", fig.show='hold'}
 knitr::include_graphics('figuras/kernel2.png')
 ```
-
+  
 * Estimador de intensidade de distribuição de pontos: 
+    
+$$\hat{\lambda}_{\tau}(u) = \dfrac{1}{\tau^2}\sum k(\dfrac{d(u_i , u)}{\tau}) \text{   ,   } d(u_i , u) \leq \tau$$
+    
+Sabendo que:
+    
+- $\hat{\lambda}_{\tau}(u)$: estimativa da intensidade do processo pontual no ponto $u$.
+  
+- $u_i$: coordenadas dos pontos observados no plano (ex.: localização dos eventos).
+  
+- $\tau$: parâmetro de suavização (largura de banda), define o raio de influência dos pontos ao redor de $u$.
+  
+- $d(u_i, u)$: distância entre o ponto observado $u_i$ e o ponto de avaliação $u$. Normalmente, a distância euclidiana.
+  
+- Condição $d(u_i, u) \leq \tau$: garante que apenas os pontos dentro da vizinhança (de raio $\tau$) contribuam para a estimativa.
+  
+- $k(\cdot)$: função kernel que define o peso atribuído a cada ponto com base na distância. Exemplos:
+    
+i) **Kernel gaussiano**: atribui maior peso aos pontos mais próximos.
+ii) **Kernel uniforme**: todos os pontos dentro do raio recebem o mesmo peso.
+iii) **Kernel Epanechnikov**: pesos decrescem com a distância, chegando a zero na borda.
 
-$$\hat{\lambda}_{\tau}(u) = \dfrac{1}{\tau^2}\sum k(\dfrac{d(u_i , u)}{\tau}), d(u_i , u) \leq \tau$$
-[*Fonte: Referência científica: Druck, S.; Carvalho, M.S.; Câmara, G.; Monteiro, A.V.M. (eds) "Análise Espacial de Dados Geográficos". Brasília, EMBRAPA, 2004](http://www.dpi.inpe.br/gilberto/livro/analise/cap2-eventos.pdf)
 
+### Como funciona:
 
+- Para cada ponto no espaço, é aplicado um funil de suavização (kernel) que distribui "peso" ao redor do ponto, atribuindo maior peso às áreas próximas e menor peso conforme a distância aumenta.
 
-#### **Localização da ocorrência de casos de dengue em Belo Horizonte/MG**
+- Ou seja, esse peso decresce com o aumento da distância a partir do centro, de acordo com uma função $k(\cdot)$, e é controlado por um parâmetro chamado largura de banda ($\tau$).
 
-```{r echo=F, fig.align="center", out.width= "60%", fig.show='hold'}
+- O resultado é uma superfície contínua de densidade, onde regiões com cores mais quentes (vermelho, laranja) indicam maior concentração de eventos.
+
+::: box-dica1
+
+🌧️ **Analogia intuitiva:**
+  
+  O kernel atua como um *limpador de para-brisa*, pesando mais os eventos próximos e menos os eventos muito distantes. A escolha do tamanho do limpador ($\tau$) e do tipo de movimento (forma da função kernel) define o quanto você vê ao redor do ponto onde está focando.
+:::
+  
+#### **Localização da ocorrência de roubo em Belo Horizonte/MG**
+  
+```{r echo=F, fig.align="center", out.width= "50%", fig.show='hold'}
 knitr::include_graphics('figuras/kernel3.png')
 ```
 
-
+A figura acima mostra como diferentes larguras de banda ($500 m$, $1.500 m$ e $2.500 m$) alteram o grau de suavização:
+  
 A imagem mostra a distribuição espacial dos casos de dengue em Belo Horizonte (MG) em três larguras de banda ($\tau$) diferentes: 500 m, 1500 m e 2500 m. As cores indicam a intensidade da ocorrência, sendo azul/verde áreas com menor concentração e amarelo/vermelho áreas com maior concentração de casos.
 
 No mapa de 500 metros, observam-se muitos pequenos focos, com maior detalhamento local. Essa escala é útil para ações pontuais e operacionais, mas pode apresentar mais variações muito específicas do território. No de 1500 metros, os padrões tornam-se mais contínuos e estáveis, facilitando a identificação de áreas prioritárias em nível regional. Já no de 2500 metros, aparecem apenas grandes zonas de maior concentração, sendo mais adequado para decisões estratégicas em nível municipal.
 
 O importante é notar que a escala de análise influencia a forma como enxergamos o problema. O fenômeno é o mesmo, mas sua interpretação muda conforme a “lente” utilizada, algo fundamental para o planejamento e a tomada de decisão na gestão pública.
 
-## Geoestatística
 
-* Podemos definir como sendo uma análise de um atributo espacialmente contínuo amostrado em localizações fixas.
-
-* Os dados compreendem um conjunto de localizações (em geral latitudes e longitudes), mas atribuidos a eles uma medida, como por exemplo: volume de chuva, concentração de poluentes no ar, número de ovos de Aedes postado em ovitrampas, etc.
+[*Fonte: Referência científica: Druck, S.; Carvalho, M.S.; Câmara, G.; Monteiro, A.V.M. (eds) "Análise Espacial de Dados Geográficos". Brasília, EMBRAPA, 2004](http://www.dpi.inpe.br/gilberto/livro/analise/cap2-eventos.pdf)
 
 
-### Intensidade dos focos de incêndios ocorridos no estado do Rio de Janeiro/Brasil no mês de dezembro de 2025.
+# 🌐 Dados do tipo Geoestística
 
+## Semivariograma: a base da análise espacial
 
-```{r, echo=T, out.width='90%'}
-library(readxl)
+Uma das principais ferramentas da geoestatística é o semivariograma, que mede o quanto dois pontos próximos no espaço se parecem (ou se diferem) com relação ao valor de uma variável.
 
-# Carregar o arquivo
-dados_geo <- read_excel("dados/queimadas/queimadas_geo.xlsx")
-```
+::: box-dica2
+**A ideia central é**: Se dois pontos estão muito próximos, é esperado que seus valores sejam parecidos. Já se estiverem distantes, a diferença entre os valores tende a aumentar.
 
-```{r, echo=T, out.width='90%'}
-library(sf)
-pontos_sf <- st_as_sf(dados_geo, 
-                      coords = c("longitude", "latitude"),
-                      crs = 4326)
-```
-
-
-```{r, echo=T, out.width='85%'}
-library(mapview)
-library(viridis)
-
-# Plotar com pontos menores
-mapview(pontos_sf, 
-        zcol = "frp",
-        cex = 3,                    # tamanho dos pontos (padrão é ~6)
-        col.regions = viridis(100, option = "plasma", direction = -1))
-```
-
-#### **Semivariograma**
-
-Em Geoestatística, utilizamos amplamente o semivariograma para descrever e quantificar a dependência espacial de um fenômeno. Ele nos permite entender como a semelhança entre os valores observados varia em função da distância entre os pontos amostrais. Em termos práticos, o semivariograma responde à seguinte pergunta: pontos mais próximos tendem a apresentar valores mais parecidos?
-
-Ao calcular o semivariograma experimental, comparamos todos os pares de observações separados por uma determinada distância 
-$h$. Se pontos próximos apresentam valores semelhantes, a semivariância será pequena para pequenas distâncias. À medida que a distância aumenta, essa diferença tende a crescer, até atingir um patamar onde não há mais dependência espacial.
-
-
-* A determinação experimental do semivariograma, para cada valor de $x_i$, considera todos os pares de amostras $z(x)$ e $z(x+h)$, separadas pelo vetor distância $h$, a partir da equação: 
-
-```{r echo=F, fig.align="center", out.width= "55%", fig.show='hold'}
-knitr::include_graphics('figuras/variograma3.png')
-```
-
-
+:::
+  
+A versão experimental do semivariograma é calculada para diferentes distâncias entre os pontos, usando a seguinte fórmula:
+  
+  <!-- * A determinação experimental do semivariograma, para cada valor de $x_i$, considera todos os pares de amostras $z(x)$ e $z(x+h)$, separadas pelo vetor distância $h$, a partir da equação:  -->
+  
+  <!-- ```{r echo=F, fig.align="center", out.width= "25%", fig.show='hold'} -->
+  <!-- knitr::include_graphics('figuras/variograma3.png') -->
+  <!-- ``` -->
+  
+  
+  
 $$\hat{\gamma}(h) = \dfrac{1}{2N(h)}\sum^{N(h)}_{i=1}[z(x_i) - z(x_i + h)]^2 $$
+Sabendo que:
+  
+- $\hat{\gamma}(h)$: valor estimado do fenômeno para a distância $h$;
 
-* Sendo $\hat{\gamma}(h)$ o semivariograma estimado e $N(h)$ o número de pares de valores medidos, $z(x)$ e $z(x+h)$, separados pelo vetor $h$.  
+- $N(h)$: número de pares de pontos separados por uma distância $h$;
 
-```{r echo=F, fig.align="center", out.width= "55%", fig.show='hold'}
+- $z(x_i)$: valor observado da variável na localização $x_i$;
+
+- $z(x_i + h)$: valor observado da variável em um ponto a uma distância $h$ de $x_i$.
+
+* A expressão representa a \textbf{diferença média ao quadrado} entre os valores da variável observada em pares de pontos separados pela distância $h$.
+
+
+```{r echo=F, fig.align="center", out.width= "40%", fig.show='hold'}
 include_graphics('figuras/variograma1.png')
 ```
 
-* Esta fórmula, entretanto, não é robusta. Podem existir situações em que variabilidade local não é constante e se
-modifica ao longo da área de estudo (heteroscedasticidade). 
+::: box-dica1
 
-```{r echo=F, fig.align="center", out.width= "55%", fig.show='hold'}
+📌 **Efeito Pepita (C₀)**: É a variação observada mesmo quando a distância entre os pontos é muito pequena ou zero. 
+
+📌 **Patamar (C)**: É o valor em que o variograma se estabiliza, indicando que a partir de certa distância, a variabilidade entre os pontos não aumenta mais. 
+
+📌 **Alcance (a)**: É a distância a partir da qual dois pontos deixam de estar correlacionados. Até essa distância, os valores ainda apresentam semelhança espacial, ou seja, após essa distância, tornam-se independentes.
+
+:::
+  
+  
+Apesar de útil, essa fórmula não é robusta em todas as situações. Em alguns casos, a variabilidade não é constante ao longo da área estudada, o que chamamos de heterocedasticidade. Nesses cenários, modelos diferentes podem ser utilizados para representar o comportamento do semivariograma. Por exemplo:
+  
+i) **Modelo Exponencial**
+  
+ii) **Modelo Esférico**
+  
+iii) **Modelo Gaussiano**
+  
+iv) **Outros**
+  
+```{r echo=F, fig.align="center", out.width= "40%", fig.show='hold'}
 include_graphics('figuras/variograma2.png')
 ```
-
-[*Fonte: Referência científica: Druck, S.; Carvalho, M.S.; Câmara, G.; Monteiro, A.V.M. (eds) "Análise Espacial de Dados Geográficos". Brasília, EMBRAPA, 2004](http://www.dpi.inpe.br/gilberto/livro/analise/cap3-superficies.pdf)
-
-Esse instrumento é fundamental porque serve de base para a modelagem espacial e para métodos de interpolação, como a krigagem. Em aplicações na gestão pública, por exemplo, no estudo da dengue, da qualidade da água ou da distribuição de indicadores socioeconômicos, o semivariograma permite identificar o alcance da influência espacial do fenômeno e orientar decisões sobre amostragem, monitoramento e planejamento territorial.
-
-Em síntese, o semivariograma é a ferramenta que traduz matematicamente a ideia de que *“o que está mais próximo tende a ser mais semelhante”*, permitindo transformar essa intuição em um modelo estatístico formal.
 
 * **Exemplo:** Mapa sobre o teor de argila no solo.
 
@@ -324,19 +547,19 @@ Em síntese, o semivariograma é a ferramenta que traduz matematicamente a ideia
 knitr::include_graphics('figuras/geoestatistica7.png')
 ```
 
-
-## Dados de Área
-
-* Na análise de áreas o atributo estudado é em geral resultado de uma medida sumáraria (ex: contagem, taxas, médias, etc.) em uma determinada área bem definida, por exemplo um polígono.
-
-* Tal polígono cuja forma pode ser complexa bem como as relações de vizinhança.
-
-* O objetivo é a detecção e explicação de padrões e tendências observados entre áreas.
+A imagem mostra a interpolação do teor de argila em uma área agrícola da Fazenda Canchim (SP), a partir de amostras de solo coletadas em campo. Diversos métodos são comparados: **a geoestatística (krigagem)**, que utiliza a estrutura de dependência espacial dos dados via semivariograma e produz um mapa suavizado e estatisticamente robusto; o método do **inverso da distância (IDW)**, que pondera os pontos mais próximos com maior influência, resultando em maior detalhamento local, mas com risco de exagerar variações; a **média simples**, que suaviza os dados sem considerar plenamente a variabilidade espacial; e o método do **vizinho mais próximo**, que gera áreas abruptas ao atribuir a cada região o valor da amostra mais próxima, sem suavização. O exemplo evidencia como a escolha do método de interpolação impacta diretamente a qualidade e continuidade do mapa final.
 
 
-### Mapas Temáticos
+[*Fonte: Referência científica: Druck, S.; Carvalho, M.S.; Câmara, G.; Monteiro, A.V.M. (eds) "Análise Espacial de Dados Geográficos". Brasília, EMBRAPA, 2004](http://www.dpi.inpe.br/gilberto/livro/analise/cap3-superficies.pdf)
 
-#### **Mapa Temático Mundial da Expectativa de Vida entre os Países**
+
+# 🗺️ Dados de Área
+
+## Mapas Temáticos
+
+O mapa temático tem como principal objetivo visualizar e analisar a distribuição espacial de um fenômeno específico.
+
+**Mapa Temático Mundial da Expectativa de Vida entre os Países**
 
 ```{r, echo=T, out.width='90%'}
 library(tmap)
@@ -346,29 +569,15 @@ tmap_style("classic")
 qtm(World, fill = "life_exp")
 ```
 
-#### **Distribuição Geográfica do Produto Interno Bruto (PIB) Municipal no Estado do Rio de Janeiro - 2020**
+**Mapa Temático da incidência de dengue no estado do Rio de Janeiro**
 
 ```{r, echo=T, out.width='90%'}
-# ----------------------------------------------------------------------------
-# 1. CARREGAR PACOTES NECESSÁRIOS
-# ----------------------------------------------------------------------------
-
-library(geobr)      # Para baixar shapes oficiais do IBGE
+# ============================================================================
+# 1. LER A PLANILHA
+# ============================================================================
 library(readxl)
 library(dplyr)
-library(sf)
-library(ggplot2)
-library(geobr)
-library(scales)
-library(patchwork)
-library(stringr)
-library(tidyr)
 
-```
-
-```{r, echo=T, out.width='90%'}
-# ── 1. LER A PLANILHA ─────────────────────────────────────────────────────────
-# Ajuste o caminho se necessário
 dengue <- read_excel("dados/dengue/dengue2025.xlsx") |>
     mutate(code_muni  = as.character(code_muni),
            casos  = as.numeric(casos),
@@ -379,51 +588,65 @@ head(dengue)
 ```
 
 ```{r, echo=T, out.width='90%'}
-# ── 2. BAIXAR MALHA MUNICIPAL DO RJ ──────────────────────────────────────────
-rj_mun <- read_municipality(code_muni = 33, year = 2022) |>
-          mutate(code_muni  = as.character(code_muni))
+# ============================================================================
+# 2. BAIXAR MALHA MUNICIPAL DO RJ
+# ============================================================================
+library(geobr)
+
+# Baixar a malha municipal do estado do Rio de Janeiro
+# code_muni = 33 (código do estado do RJ)
+
+mapa_rj <- read_municipality(code_muni = 33, year = 2024) |>
+        mutate(code_muni = as.character(code_muni))
 
 # Visualizar rapidamente o mapa
-plot(rj_mun$geom, main = "Municípios do Estado do Rio de Janeiro")
+plot(mapa_rj$geom, main = "Municípios do Estado do Rio de Janeiro")
 ```
 
 ```{r, echo=T, out.width='90%'}
-# ── 3. LEFT JOIN + TRATAR NAs ────────────────────────────────────────────────
-# Partindo do mapa (left) para manter TODOS os municípios mesmo sem casos
-mapa <- rj_mun |>
+# ============================================================================
+# 3. Left Join mapa_rj + planilha casos dengue
+# ============================================================================
+mapa_rj <- mapa_rj |>
   left_join(dengue, by = "code_muni") |> 
-  select(code_muni, municipio, pop2022, casos, incidencia)           
+  select(code_muni, municipio, pop2022, casos, incidencia)  
 ```
 
 ```{r, echo=T, out.width='90%'}
-# 4. MAPA CONTÍNUO (GRADIENTE DE CORES)
+# ============================================================================
+# 4. Mapa Temático com as incidências de dengue por município de forma contínua
+# ============================================================================
+library(ggplot2)
+
 ggplot() +
-  geom_sf(data = mapa, aes(fill = incidencia), color = "white", size = 0.2) +
+  geom_sf(data = mapa_rj, aes(fill = incidencia), color = "white", size = 0.2) +
   scale_fill_viridis_c(option = "plasma", 
                        name = "Incidência\n(por 100.000 hab)",
                        direction = -1) +  # direction = -1 inverte a escala
   theme_minimal() +
   labs(title = "Incidência de Casos nos Municípios do RJ - 2025",
        subtitle = "Escala Contínua",
-       caption = "Fonte: Dados fornecidos") +
+       caption = "Fonte: Dados Simulados") +
   theme(legend.position = "right",
         plot.title = element_text(hjust = 0.5, face = "bold"),
         plot.subtitle = element_text(hjust = 0.5),
         axis.text = element_blank(),
-        axis.title = element_blank())         
+        axis.title = element_blank())     
 ```
 
 ```{r, echo=T, out.width='90%'}
-summary(mapa$incidencia)
+# Sumário estatístico da incidência de dengue por município
+summary(mapa_rj$incidencia)
 ```
 
-
 ```{r, echo=T, out.width='90%'}
-# 5. MAPA CATEGÓRICO (CLASSIFICAÇÃO EM FAIXAS)
+# ============================================================================
+# 5. Mapa Temático com as incidências de dengue por município de forma categórica
+# ============================================================================
 # Criar categorias usando 5 classes com método quantil
 library(viridis)
 
-map_data <- mapa %>%
+map_data <- mapa_rj %>%
   mutate(
     incidencia_cat = cut(incidencia,
                          breaks = c(0, 51.7, 723.5, 1791.9, 2375.7, 3779.5, 7458.7, Inf),
@@ -446,20 +669,22 @@ ggplot() +
   theme_minimal() +
   labs(title = "Incidência de Casos nos Municípios do RJ",
        subtitle = "Classificação por Quantis",
-       caption = "Fonte: SINAN") +
+       caption = "Fonte: Dados Simulados") +
   theme(legend.position = "right",
         plot.title = element_text(hjust = 0.5, face = "bold"),
         plot.subtitle = element_text(hjust = 0.5),
         axis.text = element_blank(),
-        axis.title = element_blank())       
+        axis.title = element_blank())  
 ```
 
 ```{r, echo=T, out.width='90%'}
-
+# ============================================================================
+# 6. Mapa Temático com as incidências de dengue por município de forma categórica
+# ============================================================================
 library(classInt)
 
 # Calcular breaks Jenks
-jenks_breaks <- classIntervals(mapa$incidencia, n = 7, style = "jenks")$brks
+jenks_breaks <- classIntervals(mapa_rj$incidencia, n = 7, style = "jenks")$brks
 
 # Criar labels com os intervalos (formato igual ao da imagem, mas com os valores)
 jenks_labels <- c(
@@ -473,7 +698,7 @@ jenks_labels <- c(
 )
 
 # Criar a variável categórica
-mapa <- mapa %>%
+mapa <- mapa_rj %>%
   mutate(
     incidencia_cat = cut(incidencia,
                          breaks = jenks_breaks,
@@ -500,43 +725,43 @@ ggplot() +
 ```
 
 
-
 ### Matriz de Vizinhança
 
 A matriz de vizinhança é um instrumento fundamental da Estatística Espacial utilizado para representar formalmente quais áreas são consideradas vizinhas entre si. Em termos simples, ela transforma o mapa em uma estrutura matemática que indica quem é vizinho de quem.
 
 Imagine os municípios de um estado. No mapa, visualmente conseguimos perceber quais compartilham fronteiras. A matriz de vizinhança traduz essa informação em números: se dois municípios são vizinhos, atribuímos valor 1; se não são, atribuímos 0. O resultado é uma tabela quadrada (n × n), onde n é o número de municípios analisados.
 
-```{r echo=F, fig.align="center", out.width="80%"}
+```{r echo=F, fig.align="center", out.width="55%"}
 knitr::include_graphics('figuras/vizinhanca.png')
 ```
 
 #### **Exemplo Simplificado de Matriz de Vizinhança**
 
 **Municípios analisados:**  
-Rio de Janeiro, Niterói, São Gonçalo, Duque de Caxias, Nova Iguaçu  
+  Rio de Janeiro, Niterói, São Gonçalo, Duque de Caxias, Nova Iguaçu  
 
 **Critério:** Contiguidade do tipo *Rainha*  
-(considera vizinhos os municípios que compartilham qualquer ponto de fronteira)
+  (considera vizinhos os municípios que compartilham qualquer ponto de fronteira)
 
 
 |            | Rio | Niterói | S. Gonçalo | D. Caxias | N. Iguaçu |
-|:-----------|:---:|:-------:|:----------:|:---------:|:---------:|
-| **Rio**        |  0  |    1    |     1      |     1     |     1     |
-| **Niterói**    |  1  |    0    |     1      |     0     |     0     |
-| **S. Gonçalo** |  1  |    1    |     0      |     0     |     0     |
-| **D. Caxias**  |  1  |    0    |     0      |     0     |     1     |
-| **N. Iguaçu**  |  1  |    0    |     0      |     1     |     0     |
----
-
+  |:-----------|:---:|:-------:|:----------:|:---------:|:---------:|
+  | **Rio**        |  0  |    1    |     1      |     1     |     1     |
+  | **Niterói**    |  1  |    0    |     1      |     0     |     0     |
+  | **S. Gonçalo** |  1  |    1    |     0      |     0     |     0     |
+  | **D. Caxias**  |  1  |    0    |     0      |     0     |     1     |
+  | **N. Iguaçu**  |  1  |    0    |     0      |     1     |     0     |
+  
+  ---
+  
 Notas:
-
+  
 - **1** = municípios são vizinhos (compartilham fronteira)  
 - **0** = municípios não são vizinhos  
 A **diagonal principal é zero**, pois um município não é vizinho de si mesmo.
 
 Essa matriz é essencial porque muitos fenômenos da gestão pública apresentam dependência espacial. Ou seja, o que acontece em um município pode influenciar municípios vizinhos. Exemplos incluem:
-
+  
 - Propagação de doenças (como dengue);
 - Dinâmica do desemprego;
 - Criminalidade;
@@ -546,7 +771,7 @@ Essa matriz é essencial porque muitos fenômenos da gestão pública apresentam
 Sem a matriz de vizinhança, os métodos utilizados na estatísticos estatística tratariam cada município como independente. Com ela, conseguimos incorporar a ideia de que “o território importa”.
 
 Existem diferentes critérios para definir vizinhança:
-
+  
 - Contiguidade (compartilham fronteira);
 
 - Distância (municípios dentro de um raio específico);
@@ -554,6 +779,7 @@ Existem diferentes critérios para definir vizinhança:
 - k-vizinhos mais próximos (cada área tem um número fixo de vizinhos).
 
 A escolha do critério depende do problema de política pública analisado. Para doenças transmissíveis, por exemplo, a contiguidade territorial pode ser adequada. Já para fluxos econômicos, a distância ou conectividade pode fazer mais sentido.
+
 
 ```{r, echo=T, out.width='90%'}
 # ============================================================================
@@ -567,15 +793,15 @@ library(spdep)
 
 # Converter para objeto sp (formato exigido por alguns pacotes)
 # Mas o spdep também aceita sf diretamente
-rj_sp <- as(mapa, "Spatial")
+rj_sp <- as(mapa_rj, "Spatial")
 
 # Criar lista de vizinhos baseada em contiguidade (critério "rainha" - queen)
 # queen = TRUE considera vizinhos que compartilham qualquer ponto da fronteira
-vizinhos_rainha <- poly2nb(mapa, queen = TRUE)
+vizinhos_rainha <- poly2nb(mapa_rj, queen = TRUE)
 
 # Criar lista de vizinhos baseada em contiguidade (critério "torre" - rook)
 # queen = FALSE considera apenas vizinhos com fronteira lateral
-vizinhos_torre <- poly2nb(mapa, queen = FALSE)
+vizinhos_torre <- poly2nb(mapa_rj, queen = FALSE)
 
 # Verificar o resultado
 summary(vizinhos_rainha)
@@ -584,16 +810,16 @@ summary(vizinhos_torre)
 ```
 
 | Item do Output                   | O que representa |
-|----------------------------------|------------------|
-| Number of regions               | Número total de unidades territoriais analisadas (ex.: municípios). |
-| Number of nonzero links         | Total de conexões de vizinhança existentes entre as áreas. |
-| Percentage nonzero weights      | Percentual de conexões existentes em relação ao total possível de conexões. |
-| Average number of links         | Número médio de vizinhos por unidade territorial. |
-| Link number distribution        | Distribuição do número de vizinhos entre as áreas analisadas. |
-| Least connected regions         | Unidades territoriais com menor número de vizinhos. |
-| Most connected regions          | Unidades territoriais com maior número de vizinhos. |
-
-
+  |----------------------------------|------------------|
+  | Number of regions               | Número total de unidades territoriais analisadas (ex.: municípios). |
+  | Number of nonzero links         | Total de conexões de vizinhança existentes entre as áreas. |
+  | Percentage nonzero weights      | Percentual de conexões existentes em relação ao total possível de conexões. |
+  | Average number of links         | Número médio de vizinhos por unidade territorial. |
+  | Link number distribution        | Distribuição do número de vizinhos entre as áreas analisadas. |
+  | Least connected regions         | Unidades territoriais com menor número de vizinhos. |
+  | Most connected regions          | Unidades territoriais com maior número de vizinhos. |
+  
+  
 ```{r, echo=T, out.width='90%'}
 # ============================================================================
 # 2. CONVERTER PARA MATRIZ DE VIZINHANÇA (FORMATO TABELA)
@@ -610,450 +836,194 @@ print(matriz_vizinhos_rainha[1:10, 1:10])
 dim(matriz_vizinhos_rainha)
 
 ```
+  
+  
+## Moran Global, Moran Local e Lisa Map
 
-```{r, echo=T, out.width='90%'}
-library(sp)
-coord <- coordinates(rj_sp)  # coordenadas dos centroidas dos poligonos de dourados
-class(rj_sp)
-```
+### 🧮 Moran Global
+  
+Mede a autocorrelação espacial global, ou seja, se valores semelhantes estão agrupados no espaço.
 
-```{r, echo=T, out.width='90%'}
-viz.sf <- as(nb2lines(vizinhos_torre, coords = coord), "sf")
-viz.sf <- st_set_crs(viz.sf, st_crs(rj_mun))
-```
 
-::: box-dica3
-- `st_set_crs()` define o sistema de referência de coordenadas (CRS) do objeto `viz.sf`.
+$$I = \frac{ \sum_{i=1}^{n} \sum_{j=1}^{n} w_{ij} (y_i - \bar{y})(y_j - \bar{y}) }{ \sum_{i=1}^{n} (y_i - \bar{y})^2 }$$
+  
+::: box-dica4
 
-- Ele está copiando o CRS do objeto `setor.sf`, garantindo que os dois objetos estejam no mesmo sistema de coordenadas.
+* $I > 0$: valores similares estão próximos (agrupamento positivo).
+
+* $I < 0$: valores diferentes estão próximos (dispersão).
+
+* $I \approx 0$: padrão aleatório.
+
+:::
+  
+Sabendo que:
+  
+- \( I \): valor do índice de Moran global.
+- \( n \): número total de unidades espaciais (regiões).
+- \( y_i \): valor da variável de interesse na região \( i \).
+- \( \bar{y} \): média dos valores de \( y \) em todas as regiões.
+- \( w_{ij} \): elemento da matriz de vizinhança que representa a relação espacial entre as regiões \( i \) e \( j \).
+- \( w_{ij} = 1 \) se \( i \) e \( j \) são vizinhos, 0 caso contrário (ou ponderado).
+- O numerador mede a covariância espacial ponderada, e o denominador é a variância total de \( y \).
+
+### 🧮 Moran Local (LISA)
+
+Avalia a autocorrelação espacial **local**, permitindo identificar regiões com agrupamentos (clusters) ou comportamentos atípicos.
+
+$$I^{(i)} = \frac{n}{\sum_{j=1}^{n} (z_j - \bar{z})^2} \sum_{j=1}^{n} w_{ij} (z_i - \bar{z})(z_j - \bar{z})$$
+  
+Sabendo que:
+  
+- \( I^{(i)} \): índice de Moran local para a região \( i \).
+- \( n \): número total de regiões.
+- \( z_i \): valor padronizado (ou original, dependendo da convenção) da variável na região \( i \).
+- \( \bar{z} \): média da variável \( z \).
+- \( w_{ij} \): peso espacial entre as regiões \( i \) e \( j \).
+- A soma considera a influência dos vizinhos \( j \) sobre o ponto \( i \), ponderada pela matriz de vizinhança.
+
+::: box-dica2
+
+🗺️ Resumindo
+
+- **Moran Global** indica se há padrão geral de autocorrelação espacial (positivo, negativo ou aleatório).
+
+- **Moran Local** revela **onde** esses padrões ocorrem: clusters de alto/alto (*hotspots*), baixo/baixo (*coldspots*), alto/baixo (*outliers*), etc.
+
 :::
 
-```{r, echo=T, out.width='90%'}
-# Plotando o grafo de conectividade por contiguidade
-mapa.viz <- ggplot(mapa) + 
-            geom_sf(fill = "lightpink", color = "white") + 
-            geom_sf(data = viz.sf) +
-            theme_minimal() + 
-            ggtitle("Vizinhança por \n conectividade") + ylab("Latitude") +
-            xlab("Longitude")
+  
+### 🗺️ LISA Map
+  
+O LISA Map é um mapa temático que representa graficamente os resultados do Índice de Moran Local, ele identifica:
+  
+- Clustering local (agrupamento de valores semelhantes)
 
-print(mapa.viz)
+- Outliers espaciais (valores discrepantes em relação aos vizinhos)
+
+- Regiões não significativas (sem padrão espacial detectável)
+
+
+| Tipo de Associação        | Descrição                                                | Interpretação Espacial                                                |
+  | ------------------------- | -------------------------------------------------------- | --------------------------------------------------------------------- |
+  | 🔴 **Alto-Alto (High-High)** | Valor alto cercado por vizinhos também com valores altos | Indica **cluster de altas magnitudes**, também chamado de **hotspot** |
+  | 🔵 **Baixo-Baixo (Low-Low)** | Valor baixo cercado por vizinhos com valores baixos      | Indica **cluster de baixas magnitudes**, ou **coldspot**              |
+  | 🟠 **Alto-Baixo (High-Low)** | Valor alto cercado por valores baixos                    | Indica um **outlier espacial positivo**                               |
+  | 🟡 **Baixo-Alto (Low-High)** | Valor baixo cercado por valores altos                    | Indica um **outlier espacial negativo**                               |
+  | ⚪ **Não significativo**     | Sem associação espacial relevante                        | O valor na região não apresenta padrão espacial detectável            |
+  
+  
+* Os valores do Moran Local são testados por permutação para verificar se o padrão observado é estatisticamente significativo ou poderia ocorrer por acaso.
+
+* Apenas as regiões significativas (p-valor < 0.05) costumam ser coloridas nos mapas.
+
+Esse mapa abaixo pertence ao artigo ["Are regions equal in adversity? A spatial analysis of the spread and dynamics of COVID-19 in Europe", de Amdaoud, Arcuri e Levratto (2021)](https://www.researchgate.net/publication/349729379_Are_regions_equal_in_adversity_A_spatial_analysis_of_the_spread_and_dynamics_of_COVID-19_in_Europe). O artigo realiza uma análise espacial detalhada da mortalidade por COVID-19 em 125 regiões europeias durante a primeira onda da pandemia (março a maio de 2020). 
+
+```{r echo=F, fig.align="center", out.width="80%"}
+knitr::include_graphics('figuras/lisa_map_covid.png')
 ```
 
+Utilizando o índice de Moran Local (LISA), o estudo identifica padrões de autocorrelação espacial na mortalidade por COVID-19 entre as regiões europeias durante a primeira onda da pandemia. O resultado evidencia clusters espaciais significativos, com destaque para regiões High-High (altas taxas de mortalidade cercadas por outras com altas taxas), como o norte da Itália, Madrid e a região da Alsácia, na França. Ao mesmo tempo, regiões Low-Low, como o sul da Itália, Dinamarca e partes da Alemanha Oriental, apresentaram baixa mortalidade em vizinhança igualmente baixa. Esses padrões persistentes ao longo do tempo indicam que a disseminação da pandemia seguiu lógicas regionais, reforçando a importância de políticas públicas que considerem as desigualdades territoriais na resposta à crise sanitária.
 
-### Moran Global, Moran Local e Lisa Map
+## Modelos de Regressão Espacial
 
-🔎 **Moran Global**
+### Introdução
+Além das análises exploratórias para os dados espaciais de área, é possível avançar na modelagem estatística dos dados por meio de modelos espaciais que consideram a dependência espacial dos dados. Entre os mais utilizados estão os modelos de autocorrelação espacial global, como o **SAR (Simultaneous Autoregressive Model)** e o **CAR (Conditional Autoregressive Model)** (CRESSIE, 1993). O modelo SAR incorpora a dependência espacial diretamente no valor da variável dependente, assumindo que o valor observado em uma região é influenciado pelos valores das regiões vizinhas. Já o modelo CAR considera essa dependência na estrutura do erro, sendo muito utilizado em abordagens bayesianas para modelagem de risco em áreas geográficas.
 
-O Moran Global é uma medida sintética que avalia se existe autocorrelação espacial em todo o território analisado. Em outras palavras, ele indica se municípios vizinhos tendem a apresentar valores semelhantes para determinado indicador, como renda, taxa de mortalidade ou incidência de dengue. Quando o índice é positivo e estatisticamente significativo, significa que áreas próximas apresentam padrões semelhantes (alto com alto, baixo com baixo), revelando a existência de agrupamentos espaciais. Quando é próximo de zero, sugere ausência de padrão espacial. 
+Outra abordagem é a dos modelos com efeitos espaciais locais, como a **Regressão Geograficamente Ponderada (GWR)** (FOTHERINGHAM et al., 2002). Diferente dos modelos SAR e CAR, que assumem relações espaciais globais, o GWR permite que os coeficientes da regressão variem ao longo do espaço, ajustando uma equação específica para cada localidade. Isso possibilita identificar como os efeitos de uma variável explicativa sobre a resposta mudam de acordo com a localização, sendo especialmente útil em contextos onde há forte heterogeneidade espacial. 
 
-O Moran Global é importante porque permite verificar se o fenômeno analisado possui organização territorial, indicando a necessidade de políticas regionais integradas em vez de intervenções isoladas.
+### Na prática
 
-```{r echo=F, fig.align="center", out.width="40%", fig.cap=""}
-knitr::include_graphics('figuras/moran_global.png')
+* `r colFmt(" Hipótese de independência das observações em geral é Falsa ",'orange')` $\rightarrow$  Existe dependência espacial, ou seja, o valor observado em uma localização tende a se parecer com os valores observados em locais vizinhos.
+
+* Efeitos Espaciais $\rightarrow$ Se existir dependência ou correlação espacial significativa, devemos incluir no modelo os `r colFmt(" Efeitos Espaciais ",'darkpurple')`, caso contrário, as estimativas geradas pelo modelo de regressão podem ficar enviesadas, criando associações espúrias (isto é, sugerindo relações estatísticas onde elas não existem de fato, ou mascarando relações reais);
+
+* `r colFmt("**Como verificar ?** ",'darkred')` $\rightarrow$ Para detectar a dependência espacial, podemos analisar os resíduos da regressão tradicional (OLS), utilizando indicadores como o índice de Moran dos resíduos. Se os resíduos mostrarem autocorrelação espacial significativa, isso indica que há estrutura espacial não modelada.
+
+* `r colFmt("**Detectada a autocorrelação espacial: e agora ?** ",'darkblue')` $\rightarrow$  É necessário adotar modelos de regressão que incorporem explicitamente os efeitos espaciais, evitando vieses nas estimativas dos coeficientes.
+
+
+### i) Modelos Globais: 
+
+* Esses modelos assumem que a estrutura espacial é constante em todo o espaço geográfico. Utilizam um único parâmetro para captar a autocorrelação.
+
+* Um exemplo é o **Modelo de Erro Espacial** (*Spatial Error Model* - **CAR**), representado por:
+  
+  $$y_i = \beta_0 + \sum^{p}_{k} \beta_k x_{ik}  + \varepsilon_i \text{    , sendo  }  \varepsilon_i = \lambda  W + \xi$$
+  
+::: box-dica4
+Sendo:
+  
+- $y_i$: valor observado da variável dependente na unidade $i$;
+
+- $\beta_0$: intercepto da regressão;
+
+- $\beta_k$: coeficiente da $k$-ésima variável explicativa;
+
+- $x_{ik}$: valor da $k$-ésima variável explicativa para a unidade $i$;
+
+- $\varepsilon_i$: erro com estrutura de autocorrelação espacial;
+
+
+- $\lambda$: coeficiente de autocorrelação espacial;
+
+- $W$: matriz de vizinhança espacial (define como cada unidade está conectada às outras);
+
+- $\xi$: erro aleatório normal (sem autocorrelação).
+:::
+  
+$\rightarrow$ Podemos observar que os efeitos da autocorrelação espacial são associados ao termo de erro.
+
+::: box-dica2
+
+🧠 Interpretação:
+  
+  - Se $\lambda \ne 0$, há evidência de dependência espacial nos erros, ou seja, o erro em uma localidade está correlacionado com os erros em localidades vizinhas.
+
+- Se $\lambda = 0$, o modelo reduz-se a uma regressão tradicional, e não há autocorrelação espacial significativa.
+:::
+  
+  
+  
+### ii) Modelos Locais: 
+  
+* Enquanto os modelos globais assumem uma relação espacial uniforme, os modelos locais admitem que os parâmetros da regressão variam ao longo do espaço geográfico.
+
+* Um exemplo clássico é o Modelo **Geograficamente Ponderado** (*Geographically Weighted Regression* - **GWR**), expresso por:
+  
+  
+\[
+    y_i = \beta_{0}(u_i, v_i) + \sum_{k=1}^{p} \beta_k(u_i, v_i) \cdot x_{ik} + \varepsilon_i,
+    \\
+    \quad \text{com } \beta_k(u_i, v_i) \text{ estimado via } 
+    \sum_{j=1}^{n} K(d_{ij}) \cdot x_{jk}
+    \]
+
+::: box-dica4
+
+Onde:
+  
+- $(u_i, v_i)$: coordenadas geográficas da observação $i$;
+
+- $\beta_k(u_i, v_i)$: coeficiente local da variável explicativa $x_k$, estimado para a posição $i$;
+
+- $K(d_{ij})$: função kernel que atribui um peso à observação $j$ com base na distância $d_{ij}$ entre as localizações $i$ e $j$;
+:::
+  
+  
+**Efeito da vizinhança no GWR**: No GWR, para estimar os coeficientes de regressão em cada local, utiliza-se um "kernel espacial". O objetivo do kernel é dar mais peso para observações próximas e menos peso para as distantes. A forma e o alcance desse kernel são definidos por um parâmetro chamado largura de banda (*bandwidth*).
+
+```{r echo=F, fig.align="center", out.width= "80%", fig.show='hold'}
+knitr::include_graphics('figuras/largura_banda_gwr.png')
 ```
 
-#### Autocorrelação espacial dos casos de dengue nos municípios/RJ
+$\rightarrow$ Quanto menor $d_{ij}$, maior é o peso de $j$ na estimação de $\beta_k(u_i, v_i)$.
 
-```{r, echo=T, out.width='90%'}
-pesos.viz <- nb2listw(vizinhos_torre)
-moran.test(mapa$casos, pesos.viz)
-```
-
-O resultado do teste de Moran’s I indicou autocorrelação espacial positiva estatisticamente significativa $(I = 0,0324; Z = 2,88; p = 0,0019)$. Como o valor observado é superior ao valor esperado $(E[I] = −0,0109)$ e o p-valor é inferior a $0,05$, rejeita-se a hipótese nula de ausência de dependência espacial. Isso sugere que municípios vizinhos tendem a apresentar valores semelhantes da variável analisada, caracterizando um padrão de agrupamento espacial. Contudo, apesar de estatisticamente significativo, o valor do índice é de baixa magnitude, indicando que a intensidade da autocorrelação espacial é relativamente fraca.
-
-#### Autocorrelação espacial para incidências de dengue nos municípios/RJ
-
-```{r, echo=T, out.width='90%'}
-pesos.viz <- nb2listw(vizinhos_torre)
-moran.test(mapa$incidencia, pesos.viz)
-```
-
-O teste de Moran indicou ausência de autocorrelação espacial significativa na incidência analisada $(I = −0,055; p-valor = 0,71)$. Como o valor do índice é próximo de zero e o $p-valor$ é superior a $0,05$, não há evidências para rejeitar a hipótese de aleatoriedade espacial. Assim, os dados não apresentam padrão de agrupamento ou dispersão no espaço, sugerindo que a variação observada não está associada à localização geográfica das áreas estudadas.
-
-📍 **Moran Local (LISA)**
-
-O Moran Local, também conhecido como LISA (*Local Indicators of Spatial Association*), aprofunda a análise ao avaliar a autocorrelação espacial em cada unidade territorial individualmente. Diferentemente do Moran Global, que fornece um único valor para todo o estado ou país, o Moran Local identifica onde exatamente estão os agrupamentos espaciais e possíveis áreas atípicas. Ele permite classificar cada município como parte de um cluster de valores altos, um cluster de valores baixos ou como um ponto fora do padrão em relação aos seus vizinhos. Essa análise é fundamental para identificar territórios prioritários e direcionar recursos de forma mais estratégica.
-
-```{r echo=F, fig.align="center", out.width="30%", fig.cap=""}
-knitr::include_graphics('figuras/moran_local.png')
-```
-
-🗺 **LISA Map**
-
-O LISA Map é a representação gráfica dos resultados do Moran Local. Ele mostra visualmente onde estão os agrupamentos significativos, como áreas de alto-alto (municípios com valores elevados cercados por vizinhos também elevados) ou baixo-baixo (municípios com baixos valores cercados por baixos). Também evidencia áreas atípicas, como municípios com desempenho muito diferente do entorno. Na prática, o LISA Map é uma ferramenta poderosa, pois transforma resultados estatísticos em informação territorial clara, facilitando a identificação de regiões críticas, a priorização de políticas públicas e o planejamento regional baseado em evidências espaciais.
-
-**Autocorrelação espacial dos casos confirmados de covid-19 em municípios sede de regionais
-de saúde e vizinhos, segundo a análise do Índice Local de Moran (LISA) Univariado. Paraná, Brasil,
-março de 2020 a janeiro de 2021.**
-
-```{r echo=F, fig.align="center", out.width="90%"}
-knitr::include_graphics('figuras/moran_local3_covid.png')
-```
-
-[COVRE, Eduardo Rocha et al. Correlação espacial da covid-19 com leitos de unidades de terapia intensiva no Paraná. Revista de Saúde Pública, v. 56, p. 14, 2022.](https://www.scielo.br/j/rsp/a/NDB7dYnVxgbtWPFskqxMgKR/?lang=pt)
-
-Na figura acima, observamos que o valor do Índice de Moran Global foi de $0,404$, com $p-valor < 0,001$, indicando uma autocorrelação espacial positiva moderada e estatisticamente significativa. Isso significa que a distribuição dos casos não ocorreu de forma aleatória no território paranaense – pelo contrário, municípios com taxas semelhantes de COVID-19 tenderam a se agrupar no espaço.
-
-Observando o mapa LISA (Indicadores Locais de Associação Espacial), podemos identificar diferentes padrões regionais. As áreas em vermelho (Alto-Alto) representam municípios com altas taxas da doença cercados por vizinhos igualmente afetados, formando verdadeiros "clusters de transmissão" que exigiam intervenções coordenadas e prioritárias. Por outro lado, as áreas em azul escuro (Baixo-Baixo) mostram regiões onde tanto o município quanto seus vizinhos mantiveram baixas taxas, sugerindo que estratégias de controle podem ter sido mais eficazes nessas localidades.
-
-As áreas em rosa (Alto-Baixo) e azul claro (Baixo-Alto) revelam situações de transição ou exceção, onde um município destoa do padrão de seus vizinhos. Estes são pontos de atenção para a vigilância em saúde, pois podem indicar locais onde a doença se comporta de forma diferente da região de entorno. Já as áreas em cinza (Não significante) não apresentaram padrão espacial definido, podendo refletir maior heterogeneidade local ou dinâmicas de transmissão mais complexas.
-
-🎯 Diferença resumida
-
-* Moran Global → Existe padrão espacial no estado como um todo ?
-
-* Moran Local (LISA) → Onde estão esses padrões ?
-
-* LISA Map → Visualização espacial desses agrupamentos.
-
-### Modelos de Regressão Espacial
-
-* `r colFmt(" Hipótese de independência das observações em geral é Falsa ",'orange')` $\rightarrow$ Dependência Espacial
-
-* Efeitos Espaciais $\rightarrow$ Se existir forte tendência ou correlação espacial, os resultados serão influenciados, apresentando associação estatística onde não existe (e vice-versa);
-
-* `r colFmt("**Como verificar ?** ",'darkred')` $\rightarrow$ Medir a autocorrelação espacial dos resíduos da regressão (Índice de Moran dos resíduos).
-
-* Autocorrelação espacial constatada ! E agora ? $\rightarrow$ Utilizar Modelos de regressão que incorporam efeitos espaciais:
-
-    i) **Modelos Globais:** utilizam um único parâmetro para capturar a estrutura de correlação espacial $\rightarrow$ ex: *Spatial Error Models (CAR)*
-    
-$$y_i = \beta_0 + \sum^{p}_{k} \beta_k x_{ik}  + \varepsilon_i \text{    , sendo  }  \varepsilon_i = \lambda  W + \xi$$
-
-  * Os efeitos da autocorrelação espacial são associados ao termo de erro. Sendo  $W$ a matriz de vizinhaça, $\varepsilon$ a componente do erro com efeitos espaciais, $λ$ é o coeficiente autoregressivo e $\xi$ é a componente do erro com variância constante e não
-correlacionada. 
-
-  * A hipótese nula para a não existência de autocorrelação é que $\lambda = 0$, ou seja, o termo de erro não é espacialmente correlacionado. 
-
-    ii) **Modelos Locais:** parâmetros variam continuamente no espaço ex: *Geographically Weighted Regression (GWR)*
-    
-$$y_i = \beta_{0}(u_i, v_i) + \sum^{p}_{k}  \beta_k (u_i, v_i) x_{ik} + \varepsilon_i \text{    , sendo  } (u_i, v_i) \text{    as coordenadas geográficas}$$
 [Fonte: ARDILLY, Pascal et al. Manuel d’analyse spatiale. 2018.](https://ec.europa.eu/eurostat/documents/3859598/9462709/INSEE-ESTAT-SPATIAL-ANA-18-EN.pdf)
 
 
-# Algumas Ferramentas para Estatística Espacial
 
-## SiG QGIS
-
-```{r echo=F, fig.align="center", out.width="80%"}
-knitr::include_graphics('figuras/QGIS.png')
-```
-
-[QGIS: Um Sistema de Informação Geográfica livre e aberto](https://www.qgis.org/pt_BR/site/)
-
-## GEODA
-
-```{r echo=F, fig.align="center", out.width="80%"}
-knitr::include_graphics('figuras/GEODA.png')
-```
-
-[GEODA: AN INTRODUCTION TO SPATIAL DATA ANALYSIS](https://spatial.uchicago.edu/geoda)
-
-
-## R
-
-```{r echo=F, fig.align="center", out.width="60%"}
-knitr::include_graphics('figuras/logo_ubuntu.png')
-```
-
-Fonte: [Dicas para integração e instalação do R 4.2 no Ubuntu 22.04 LTS e os pacotes espaciais](https://rtask.thinkr.fr/installation-of-r-4-2-on-ubuntu-22-04-lts-and-tips-for-spatial-packages/)
-
-
-## Python
-
-```{r echo=F, fig.align="center", out.width="60%"}
-knitr::include_graphics('figuras/geopandas.png')
-```
-
-Fonte: [Github Geopandas](https://geopandas.org/en/stable/)
-
-# Aplicações da Estatística Espacial utilização o pacote estatístico R:
-
-## Aplicação I: Estudo de John Snow
-
-- Segue algumas aplicações com os dados do pacote `cholera`, que contêm as localizações das mortes por cólera no famoso estudo de John Snow (Londres, 1854).
-
-```{r, echo=T, out.width='90%'}
-# install.packages("cholera")
-library(cholera)
-
-#  Mortes por cólera
-head(fatalities[,1:3])
-```
-
-```{r, echo=T, out.width='90%'}
-# Dados das Bombas de Água
-head(pumps[,1:4])
-```
-
-
-```{r, echo=T, out.width='90%'}
-# Visualizar mapa 
-snowMap(add.cases = TRUE, add.pumps = TRUE, case.col = "darkred")
-
-```
-
-```{r, echo=T, out.width='90%'}
-# Instalar e carregar pacotes necessários
-# install.packages(c("spatstat", "MASS", "sf", "raster"))
-library(spatstat)
-library(MASS)
-library(sf)
-library(raster)
-library(viridis)
-
-# Carregar dados
-data(fatalities)
-data(pumps)
-data(roads)
-```
-
-```{r, echo=T, out.width='90%'}
-# Kernel 2D simples
-kernel_simple <- kde2d(fatalities$x, fatalities$y, 
-                       n = 100,  # Resolução
-                       lims = c(range(fatalities$x), 
-                                range(fatalities$y)))
-
-# Plotar
-par(mfrow = c(1, 2))
-
-# Contorno
-contour(kernel_simple, 
-        main = "Densidade de Kernel - Contorno",
-        xlab = "Coordenada X", 
-        ylab = "Coordenada Y",
-        col = "darkred",
-        lwd = 2)
-points(fatalities$x, fatalities$y, pch = ".", col = "red")
-points(pumps$x, pumps$y, pch = 4, col = "blue", cex = 1.5, lwd = 2)
-
-# Imagem de calor
-image(kernel_simple, 
-      main = "Densidade de Kernel - Heatmap",
-      col = heat.colors(50))
-contour(kernel_simple, add = TRUE, col = "white")
-points(pumps$x, pumps$y, pch = 4, col = "blue", cex = 1.5, lwd = 2)
-```
-
-
-
-```{r, echo=T, out.width='90%'}
-#  Comparação de Diferentes Bandwidths
-# Criar diferentes kernels
-# Calcular cada kernel individualmente
-kernel_02 <- kde2d(fatalities$x, fatalities$y, h = 0.2, n = 100,
-                   lims = c(range(fatalities$x), range(fatalities$y)))
-
-kernel_05 <- kde2d(fatalities$x, fatalities$y, h = 0.5, n = 100,
-                   lims = c(range(fatalities$x), range(fatalities$y)))
-
-kernel_1 <- kde2d(fatalities$x, fatalities$y, h = 1, n = 100,
-                  lims = c(range(fatalities$x), range(fatalities$y)))
-
-kernel_2 <- kde2d(fatalities$x, fatalities$y, h = 2, n = 100,
-                  lims = c(range(fatalities$x), range(fatalities$y)))
-
-
-# --- Plot 1: bandwidths 0.2 e 0.5 ---
-par(mfrow = c(1, 2))
-
-image(kernel_02, main = "Bandwidth = 0.2", col = terrain.colors(50), xlab = "X", ylab = "Y")
-contour(kernel_02, add = TRUE, col = "white", lwd = 0.5)
-points(pumps$x, pumps$y, pch = 4, col = "blue", cex = 1.2, lwd = 1.5)
-mtext(paste("Mortes:", nrow(fatalities)), side = 3, line = 0.3, cex = 0.8)
-
-image(kernel_05, main = "Bandwidth = 0.5", col = terrain.colors(50), xlab = "X", ylab = "Y")
-contour(kernel_05, add = TRUE, col = "white", lwd = 0.5)
-points(pumps$x, pumps$y, pch = 4, col = "blue", cex = 1.2, lwd = 1.5)
-mtext(paste("Mortes:", nrow(fatalities)), side = 3, line = 0.3, cex = 0.8)
-
-
-# --- Plot 2: bandwidths 1 e 2 ---
-par(mfrow = c(1, 2))
-
-image(kernel_1, main = "Bandwidth = 1", col = terrain.colors(50), xlab = "X", ylab = "Y")
-contour(kernel_1, add = TRUE, col = "white", lwd = 0.5)
-points(pumps$x, pumps$y, pch = 4, col = "blue", cex = 1.2, lwd = 1.5)
-mtext(paste("Mortes:", nrow(fatalities)), side = 3, line = 0.3, cex = 0.8)
-
-image(kernel_2, main = "Bandwidth = 2", col = terrain.colors(50), xlab = "X", ylab = "Y")
-contour(kernel_2, add = TRUE, col = "white", lwd = 0.5)
-points(pumps$x, pumps$y, pch = 4, col = "blue", cex = 1.2, lwd = 1.5)
-mtext(paste("Mortes:", nrow(fatalities)), side = 3, line = 0.3, cex = 0.8)
-
-```
-
-
-```{r, echo=T, out.width='90%'}
-# Kernel 3D 
-
-library(plotly)
-
-# Calcular kernel
-kernel_3d <- kde2d(fatalities$x, fatalities$y, n = 50)
-
-# Criar plot 3D
-plot_ly() |>
-  add_surface(
-    x = kernel_3d$x,
-    y = kernel_3d$y,
-    z = kernel_3d$z,
-    colorscale = list(c(0, "white"), c(1, "red")),
-    opacity = 0.8,
-    name = "Densidade"
-  ) |>
-  add_markers(
-    x = fatalities$x,
-    y = fatalities$y,
-    z = rep(0, nrow(fatalities)),
-    marker = list(size = 3, color = "black", symbol = "circle"),
-    name = "Mortes"
-  ) |>
-  add_markers(
-    x = pumps$x,
-    y = pumps$y,
-    z = rep(0, nrow(pumps)),
-    marker = list(size = 8, color = "blue", symbol = "x"),
-    name = "Bombas"
-  ) |>
-  layout(
-    title = "DENSIDADE 3D DO SURTO DE CÓLERA",
-    scene = list(
-      xaxis = list(title = "Coordenada X"),
-      yaxis = list(title = "Coordenada Y"),
-      zaxis = list(title = "Densidade"),
-      camera = list(eye = list(x = 1.5, y = 1.5, z = 1.5))
-    ),
-    showlegend = TRUE
-  )
-```
-
-
-## Aplicação II: Construindo mapa temático
-
-
-#### Bibliotecas que serão utilizadas:
-
-```{r, echo=T}
-library(ggplot2)
-library(dplyr)
-library(viridis)
-library(geobr)
-library(sf)
-library(maptools)
-library(leaflet)
-library(ggspatial)
-
-```
-
-
-```{r, echo=T}
-brasil.ufs <- st_read("malhas/brasil_ufs_2019.shp")
-```
-
-#### Primeiro, vamos fazer um gráfico apenas com as geometrias.
-
-```{r, echo=T}
-ggplot(brasil.ufs) + 
-  geom_sf()
-```
-
-* Para a construção de um mapa onde cada estado recebe uma cor de acordo com a sua região geogrática, procedemos da seguinte forma: 
-  
-```{r, echo=T,  out.width="70%"}
-ggplot(brasil.ufs) + 
-  geom_sf(aes(fill = nam_rgn)) + 
-  labs(fill="Região")
-```
-
-* Agora utilizaremos dados relativos a porcentagem de municípios com rede de esgoto de acordo com a unidade da federação ([fonte dos dados](https://pt.wikipedia.org/wiki/Lista_de_unidades_federativas_do_Brasil_por_acesso_%C3%A0_rede_de_esgoto) ) para fazer um gráfico. Vamos associar esses dados a tabela de acordo com a variável State e padronizaremos a porcentagem para variar de 0 a 100.
-
-
-```{r, echo=T,  out.width="70%"}
-# Entrando com os dados observados na wikipedia
-acesso_san <- data.frame(cod_stt = c(12, 27, 16, 13, 29, 23, 53, 32, 52, 21, 51, 50, 31, 15, 
-                                     25, 41, 26, 22, 33, 24, 43, 11, 14, 42, 35, 28, 17), 
-                         com_rede = c(0.273, 0.412, 0.313, 0.177, 0.513, 0.696, 1.000, 0.974, 0.280, 0.065, 
-                                      0.191, 0.449, 0.916, 0.063, 0.731, 0.421, 0.881, 0.045, 0.924, 0.353, 
-                                      0.405, 0.096, 0.400, 0.352, 0.998, 0.347, 0.129))
-```
-
-<center>
-  
-```{r, echo=T,  out.width="80%"}
-# Construindo o mapa com ggplot
-brasil.ufs |> 
-  left_join(acesso_san, by = "cod_stt") |> 
-  mutate(com_rede = 100*com_rede) |> 
-  ggplot(aes(fill = com_rede), color = "black") +
-  geom_sf() + 
-  scale_fill_viridis(name = "Municípios com rede de esgoto (%)", direction = -1) + 
-  xlab("Longitude") + 
-  ylab("Latitude") +
-  annotation_scale(location = "bl") +
-  annotation_north_arrow(location = "br") +
-  theme_minimal()
-```
-
-</center>
-  
-  * Uma forma alteranativa de apresentar esses mesmos dados se dá pela apresentação de círculos com raios proporcionais a porcentgem de municípios com rede de esgoto no centroide de cada geometria (nesse caso, UF).
-
-
-
-```{r, echo=T,  out.width="80%"}
-# Juntando o banco com os dados + malha
-coord_pontos <- brasil.ufs |> 
-  left_join(acesso_san, by = "cod_stt") |> 
-  mutate(com_rede = 100*com_rede) |> 
-  st_centroid()
-```
-
-<center>
-  
-```{r, echo=T,  out.width="80%"}
-# Construindo o mapa com ggplot
-ggplot(brasil.ufs)+ 
-  geom_sf() + 
-  geom_sf(data = coord_pontos, aes(size = com_rede), col = "blue", alpha = .65,
-          show.legend = "point") + 
-  scale_size_continuous(name = "Municípios com rede de esgoto (%)") + 
-  xlab("Longitude") + 
-  ylab("Latitude") +
-  annotation_scale(location = "bl") +
-  annotation_north_arrow(location = "br") +
-  theme_minimal()
-```
-
-</center>
-  
-  * Uma alternativa interativa para trabalhar com mapas é com a utilização do pacote *leaflet*
-  
-  <center>
-  
-```{r, echo=T,  out.width="70%"}
-data.frame(st_coordinates(coord_pontos), 
-           com_rede = coord_pontos$com_rede, 
-           UF = coord_pontos$nam_stt) |>
-  leaflet() |> 
-  addTiles() |>
-  addCircleMarkers(~ X, ~ Y,
-                   label = ~ as.character(paste0(UF, ": ", com_rede, "%")),
-                   labelOptions = labelOptions(textsize = "13px"),
-                   radius = ~ com_rede/10,
-                   fillOpacity = 0.5)
-
-```
-
-</center>
-  
-  [Créditos ao Thiago Mendonça](https://www.tiagoms.com/post/mapa/)
-
-
-
-## Bibliografia sugerida
+# 📚 Bibliografia sugerida
 
 * Druck, S.; Carvalho, M.S.; Câmara, G.; Monteiro, A.V.M. (eds). [Análise Espacial de Dados Geográficos](http://www.dpi.inpe.br/gilberto/livro/analise/). Brasília, EMBRAPA, 2004.
 
