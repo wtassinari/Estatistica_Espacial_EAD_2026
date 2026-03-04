@@ -421,6 +421,8 @@ summary(mapa$incidencia)
 ```{r, echo=T, out.width='90%'}
 # 5. MAPA CATEGÓRICO (CLASSIFICAÇÃO EM FAIXAS)
 # Criar categorias usando 5 classes com método quantil
+library(viridis)
+
 map_data <- mapa %>%
   mutate(
     incidencia_cat = cut(incidencia,
@@ -455,11 +457,6 @@ ggplot() +
 ```{r, echo=T, out.width='90%'}
 
 library(classInt)
-library(classInt)
-library(dplyr)
-library(ggplot2)
-library(sf)
-library(viridis)
 
 # Calcular breaks Jenks
 jenks_breaks <- classIntervals(mapa$incidencia, n = 7, style = "jenks")$brks
@@ -510,7 +507,7 @@ A matriz de vizinhança é um instrumento fundamental da Estatística Espacial u
 
 Imagine os municípios de um estado. No mapa, visualmente conseguimos perceber quais compartilham fronteiras. A matriz de vizinhança traduz essa informação em números: se dois municípios são vizinhos, atribuímos valor 1; se não são, atribuímos 0. O resultado é uma tabela quadrada (n × n), onde n é o número de municípios analisados.
 
-```{r echo=F, fig.align="center", out.width="55%"}
+```{r echo=F, fig.align="center", out.width="80%"}
 knitr::include_graphics('figuras/vizinhanca.png')
 ```
 
@@ -558,7 +555,6 @@ Existem diferentes critérios para definir vizinhança:
 
 A escolha do critério depende do problema de política pública analisado. Para doenças transmissíveis, por exemplo, a contiguidade territorial pode ser adequada. Já para fluxos econômicos, a distância ou conectividade pode fazer mais sentido.
 
-
 ```{r, echo=T, out.width='90%'}
 # ============================================================================
 # MATRIZ DE VIZINHANÇA DOS MUNICÍPIOS DO RIO DE JANEIRO
@@ -571,15 +567,15 @@ library(spdep)
 
 # Converter para objeto sp (formato exigido por alguns pacotes)
 # Mas o spdep também aceita sf diretamente
-rj_sp <- as(rj_mun, "Spatial")
+rj_sp <- as(mapa, "Spatial")
 
 # Criar lista de vizinhos baseada em contiguidade (critério "rainha" - queen)
 # queen = TRUE considera vizinhos que compartilham qualquer ponto da fronteira
-vizinhos_rainha <- poly2nb(rj_mun, queen = TRUE)
+vizinhos_rainha <- poly2nb(mapa, queen = TRUE)
 
 # Criar lista de vizinhos baseada em contiguidade (critério "torre" - rook)
 # queen = FALSE considera apenas vizinhos com fronteira lateral
-vizinhos_torre <- poly2nb(rj_mun, queen = FALSE)
+vizinhos_torre <- poly2nb(mapa, queen = FALSE)
 
 # Verificar o resultado
 summary(vizinhos_rainha)
@@ -615,6 +611,34 @@ dim(matriz_vizinhos_rainha)
 
 ```
 
+```{r, echo=T, out.width='90%'}
+library(sp)
+coord <- coordinates(rj_sp)  # coordenadas dos centroidas dos poligonos de dourados
+class(rj_sp)
+```
+
+```{r, echo=T, out.width='90%'}
+viz.sf <- as(nb2lines(vizinhos_torre, coords = coord), "sf")
+viz.sf <- st_set_crs(viz.sf, st_crs(rj_mun))
+```
+
+::: box-dica3
+- `st_set_crs()` define o sistema de referência de coordenadas (CRS) do objeto `viz.sf`.
+
+- Ele está copiando o CRS do objeto `setor.sf`, garantindo que os dois objetos estejam no mesmo sistema de coordenadas.
+:::
+
+```{r, echo=T, out.width='90%'}
+# Plotando o grafo de conectividade por contiguidade
+mapa.viz <- ggplot(mapa) + 
+            geom_sf(fill = "lightpink", color = "white") + 
+            geom_sf(data = viz.sf) +
+            theme_minimal() + 
+            ggtitle("Vizinhança por \n conectividade") + ylab("Latitude") +
+            xlab("Longitude")
+
+print(mapa.viz)
+```
 
 
 ### Moran Global, Moran Local e Lisa Map
@@ -628,6 +652,24 @@ O Moran Global é importante porque permite verificar se o fenômeno analisado p
 ```{r echo=F, fig.align="center", out.width="40%", fig.cap=""}
 knitr::include_graphics('figuras/moran_global.png')
 ```
+
+#### Autocorrelação espacial dos casos de dengue nos municípios/RJ
+
+```{r, echo=T, out.width='90%'}
+pesos.viz <- nb2listw(vizinhos_torre)
+moran.test(mapa$casos, pesos.viz)
+```
+
+O resultado do teste de Moran’s I indicou autocorrelação espacial positiva estatisticamente significativa $(I = 0,0324; Z = 2,88; p = 0,0019)$. Como o valor observado é superior ao valor esperado $(E[I] = −0,0109)$ e o p-valor é inferior a $0,05$, rejeita-se a hipótese nula de ausência de dependência espacial. Isso sugere que municípios vizinhos tendem a apresentar valores semelhantes da variável analisada, caracterizando um padrão de agrupamento espacial. Contudo, apesar de estatisticamente significativo, o valor do índice é de baixa magnitude, indicando que a intensidade da autocorrelação espacial é relativamente fraca.
+
+#### Autocorrelação espacial para incidências de dengue nos municípios/RJ
+
+```{r, echo=T, out.width='90%'}
+pesos.viz <- nb2listw(vizinhos_torre)
+moran.test(mapa$incidencia, pesos.viz)
+```
+
+O teste de Moran indicou ausência de autocorrelação espacial significativa na incidência analisada $(I = −0,055; p-valor = 0,71)$. Como o valor do índice é próximo de zero e o $p-valor$ é superior a $0,05$, não há evidências para rejeitar a hipótese de aleatoriedade espacial. Assim, os dados não apresentam padrão de agrupamento ou dispersão no espaço, sugerindo que a variação observada não está associada à localização geográfica das áreas estudadas.
 
 📍 **Moran Local (LISA)**
 

@@ -16,6 +16,7 @@ tidyr
 classInt
 spData
 spdep
+sp
 cholera
 spatstat.data
 spatstat.univar
@@ -28,7 +29,6 @@ spatstat.model
 spatstat.linnet
 spatstat
 MASS
-sp
 raster
 plotly
 maptools
