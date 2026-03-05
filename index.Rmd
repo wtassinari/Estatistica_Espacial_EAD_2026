@@ -364,6 +364,17 @@ pontos_sf <- st_as_sf(dados_pontos,
                       coords = c("longitude", "latitude"),
                        crs = 4326)
 ```
+
+📌 O que é CRS (Coordinate Reference System) ?
+
+O CRS é como uma “regra de tradução” entre o que está em um mapa e o mundo real. Ele define como as coordenadas (como 140, 12) se relacionam com locais verdadeiros na Terra, dizendo se os valores estão em metros, graus ou outra unidade, e onde fica o ponto de partida (a origem). Sem um CRS, uma coordenada não tem significado, pois não sabemos onde ela realmente está nem em que escala.
+
+🗺️ Por que isso é importante ?
+
+Se dois mapas tiverem CRSs diferentes, os pontos não vão se alinhar corretamente — como tentar juntar peças de quebra-cabeça de caixas diferentes. Usar o CRS certo garante que todas as informações espaciais estejam bem posicionadas e coerentes. Por exemplo, o WGS 84 é usado por GPS e Google Maps (em graus), enquanto o UTM é usado para mapas locais mais precisos (em metros). Saber isso evita erros em análises espaciais e garante que os dados “conversem” entre si.
+
+**OBS:** Se quiser saber um pouco mais a respeito do CRS, basta acessar ([link](https://rspatial.org/raster/spatial/6-crs.html))
+
   
 ```{r, echo=T, out.width='90%'}
 library(geobr)
@@ -723,8 +734,6 @@ ggplot() +
         axis.text = element_blank(),
         axis.title = element_blank())
 ```
-
-
 ### Matriz de Vizinhança
 
 A matriz de vizinhança é um instrumento fundamental da Estatística Espacial utilizado para representar formalmente quais áreas são consideradas vizinhas entre si. Em termos simples, ela transforma o mapa em uma estrutura matemática que indica quem é vizinho de quem.
