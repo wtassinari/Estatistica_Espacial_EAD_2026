@@ -26,3 +26,9 @@ MASS
 sp
 raster
 plotly
+gstat
+lattice
+automap
+leaflet
+leaflet.extras2
+leafem
