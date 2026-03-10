@@ -1251,6 +1251,35 @@ $\rightarrow$ Quanto menor $d_{ij}$, maior é o peso de $j$ na estimação de $\
 
 [Fonte: ARDILLY, Pascal et al. Manuel d’analyse spatiale. 2018.](https://ec.europa.eu/eurostat/documents/3859598/9462709/INSEE-ESTAT-SPATIAL-ANA-18-EN.pdf)
 
+
+### **Ajustando o modelo de regressão linear simples.**
+
+```{r, echo=T,  out.width="70%"}
+# Ajustando o modelo de regressão linear simples
+dengue.lm <- lm(casos ~ 1, data = mapa)
+summary(dengue.lm)
+```
+
+### Checando os residuos para verificar a presença de autocorrelação.
+
+```{r, echo=T,  out.width="70%"}
+dengue.lm$lmresid <- residuals(dengue.lm)
+moran.test(dengue.lm$lmresid, pesos.viz)
+```
+
+### Ajustando o modelo CAR (Spatial Error Model)
+
+O **Modelo de Erro Espacial** (*Spatial Error Model* - **CAR**), representado por:
+    
+$$y_i = \beta_0 + \sum^{p}_{k} \beta_k x_{ik}  + \varepsilon_i$$
+$$\varepsilon_i = \lambda  W + \xi$$
+
+```{r, echo=T,  out.width="70%"}
+# library(spatialreg)
+# dengue.car <- errorsarlm(casos ~ 1, data = mapa, listw = pesos.viz)
+# summary(dengue.car)
+```
+
 # 👉 Aplicações da Estatística Espacial 
 
 ## **Aplicação I:** Estudo de John Snow
