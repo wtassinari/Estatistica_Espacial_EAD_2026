@@ -1020,7 +1020,35 @@ Neste mapa, podemos observar:
   
 🗺 **LISA Map**
 
-O LISA Map é a representação gráfica dos resultados do Moran Local. Ele mostra visualmente onde estão os agrupamentos significativos, como áreas de alto-alto (municípios com valores elevados cercados por vizinhos também elevados) ou baixo-baixo (municípios com baixos valores cercados por baixos). Também evidencia áreas atípicas, como municípios com desempenho muito diferente do entorno. Na prática, o LISA Map é uma ferramenta poderosa, pois transforma resultados estatísticos em informação territorial clara, facilitando a identificação de regiões críticas, a priorização de políticas públicas e o planejamento regional baseado em evidências espaciais.
+O LISA Map é um mapa temático que representa graficamente os resultados do Índice de Moran Local, ele identifica:
+  
+- Clustering local (agrupamento de valores semelhantes)
+
+- Outliers espaciais (valores discrepantes em relação aos vizinhos)
+
+- Regiões não significativas (sem padrão espacial detectável)
+
+
+| Tipo de Associação        | Descrição                                                | Interpretação Espacial                                                |
+  | ------------------------- | -------------------------------------------------------- | --------------------------------------------------------------------- |
+  | 🔴 **Alto-Alto (High-High)** | Valor alto cercado por vizinhos também com valores altos | Indica **cluster de altas magnitudes**, também chamado de **hotspot** |
+  | 🔵 **Baixo-Baixo (Low-Low)** | Valor baixo cercado por vizinhos com valores baixos      | Indica **cluster de baixas magnitudes**, ou **coldspot**              |
+  | 🟠 **Alto-Baixo (High-Low)** | Valor alto cercado por valores baixos                    | Indica um **outlier espacial positivo**                               |
+  | 🟡 **Baixo-Alto (Low-High)** | Valor baixo cercado por valores altos                    | Indica um **outlier espacial negativo**                               |
+  | ⚪ **Não significativo**     | Sem associação espacial relevante                        | O valor na região não apresenta padrão espacial detectável            |
+  
+  
+* Os valores do Moran Local são testados por permutação para verificar se o padrão observado é estatisticamente significativo ou poderia ocorrer por acaso.
+
+* Apenas as regiões significativas (p-valor < 0.05) costumam ser coloridas nos mapas.
+
+Esse mapa abaixo pertence ao artigo ["Are regions equal in adversity? A spatial analysis of the spread and dynamics of COVID-19 in Europe", de Amdaoud, Arcuri e Levratto (2021)](https://www.researchgate.net/publication/349729379_Are_regions_equal_in_adversity_A_spatial_analysis_of_the_spread_and_dynamics_of_COVID-19_in_Europe). O artigo realiza uma análise espacial detalhada da mortalidade por COVID-19 em 125 regiões europeias durante a primeira onda da pandemia (março a maio de 2020). 
+
+```{r echo=F, fig.align="center", out.width="80%"}
+knitr::include_graphics('figuras/lisa_map_covid.png')
+```
+
+Utilizando o índice de Moran Local (LISA), o estudo identifica padrões de autocorrelação espacial na mortalidade por COVID-19 entre as regiões europeias durante a primeira onda da pandemia. O resultado evidencia clusters espaciais significativos, com destaque para regiões High-High (altas taxas de mortalidade cercadas por outras com altas taxas), como o norte da Itália, Madrid e a região da Alsácia, na França. Ao mesmo tempo, regiões Low-Low, como o sul da Itália, Dinamarca e partes da Alemanha Oriental, apresentaram baixa mortalidade em vizinhança igualmente baixa. Esses padrões persistentes ao longo do tempo indicam que a disseminação da pandemia seguiu lógicas regionais, reforçando a importância de políticas públicas que considerem as desigualdades territoriais na resposta à crise sanitária.
 
 **Autocorrelação espacial dos casos confirmados de covid-19 em municípios sede de regionais
 de saúde e vizinhos, segundo a análise do Índice Local de Moran (LISA) Univariado. Paraná, Brasil,
@@ -1125,37 +1153,6 @@ tm_shape(mapa) +
 :::
 
   
-🗺 **LISA Map**
-  
-O LISA Map é um mapa temático que representa graficamente os resultados do Índice de Moran Local, ele identifica:
-  
-- Clustering local (agrupamento de valores semelhantes)
-
-- Outliers espaciais (valores discrepantes em relação aos vizinhos)
-
-- Regiões não significativas (sem padrão espacial detectável)
-
-
-| Tipo de Associação        | Descrição                                                | Interpretação Espacial                                                |
-  | ------------------------- | -------------------------------------------------------- | --------------------------------------------------------------------- |
-  | 🔴 **Alto-Alto (High-High)** | Valor alto cercado por vizinhos também com valores altos | Indica **cluster de altas magnitudes**, também chamado de **hotspot** |
-  | 🔵 **Baixo-Baixo (Low-Low)** | Valor baixo cercado por vizinhos com valores baixos      | Indica **cluster de baixas magnitudes**, ou **coldspot**              |
-  | 🟠 **Alto-Baixo (High-Low)** | Valor alto cercado por valores baixos                    | Indica um **outlier espacial positivo**                               |
-  | 🟡 **Baixo-Alto (Low-High)** | Valor baixo cercado por valores altos                    | Indica um **outlier espacial negativo**                               |
-  | ⚪ **Não significativo**     | Sem associação espacial relevante                        | O valor na região não apresenta padrão espacial detectável            |
-  
-  
-* Os valores do Moran Local são testados por permutação para verificar se o padrão observado é estatisticamente significativo ou poderia ocorrer por acaso.
-
-* Apenas as regiões significativas (p-valor < 0.05) costumam ser coloridas nos mapas.
-
-Esse mapa abaixo pertence ao artigo ["Are regions equal in adversity? A spatial analysis of the spread and dynamics of COVID-19 in Europe", de Amdaoud, Arcuri e Levratto (2021)](https://www.researchgate.net/publication/349729379_Are_regions_equal_in_adversity_A_spatial_analysis_of_the_spread_and_dynamics_of_COVID-19_in_Europe). O artigo realiza uma análise espacial detalhada da mortalidade por COVID-19 em 125 regiões europeias durante a primeira onda da pandemia (março a maio de 2020). 
-
-```{r echo=F, fig.align="center", out.width="80%"}
-knitr::include_graphics('figuras/lisa_map_covid.png')
-```
-
-Utilizando o índice de Moran Local (LISA), o estudo identifica padrões de autocorrelação espacial na mortalidade por COVID-19 entre as regiões europeias durante a primeira onda da pandemia. O resultado evidencia clusters espaciais significativos, com destaque para regiões High-High (altas taxas de mortalidade cercadas por outras com altas taxas), como o norte da Itália, Madrid e a região da Alsácia, na França. Ao mesmo tempo, regiões Low-Low, como o sul da Itália, Dinamarca e partes da Alemanha Oriental, apresentaram baixa mortalidade em vizinhança igualmente baixa. Esses padrões persistentes ao longo do tempo indicam que a disseminação da pandemia seguiu lógicas regionais, reforçando a importância de políticas públicas que considerem as desigualdades territoriais na resposta à crise sanitária.
 
 ## Modelos de Regressão Espacial
 
