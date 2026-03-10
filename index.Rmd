@@ -845,7 +845,41 @@ print(matriz_vizinhos_rainha[1:10, 1:10])
 dim(matriz_vizinhos_rainha)
 
 ```
-  
+
+### Verificando a malha de conectividade da vizinhança da cidade do Rio de Janeiro/RJ
+
+* Iremos precisar da coordenadas dos centróides para montar a malha de conectividade.
+
+```{r, echo=T,  out.width="70%"}
+library(sp)
+mapa_rj.sp <- as(mapa_rj, 'Spatial') # convertendo em formato sp
+coord <- coordinates(mapa_rj.sp) # coordenadas dos centroides dos poligonos do RJ
+class(mapa_rj.sp)
+```
+
+```{r, echo=T}
+viz.sf <- as(nb2lines(vizinhos_rainha, coords = coord), 'sf')
+viz.sf <- st_set_crs(viz.sf, st_crs(mapa_rj))
+```
+
+::: box-dica2
+- `st_set_crs()` define o sistema de referência de coordenadas (CRS) do objeto `viz.sf`.
+
+- Ele está copiando o CRS do objeto `setor.sf`, garantindo que os dois objetos estejam no mesmo sistema de coordenadas.
+:::
+
+```{r, echo=T,  out.width="80%"}
+# Plotando o grafo de conectividade por contiguidade
+mapa.viz <- ggplot(mapa_rj) + 
+  geom_sf(fill = 'lightpink', color = 'white') +
+  geom_sf(data = viz.sf) +
+  theme_minimal() +
+  ggtitle("Vizinhança por conectividade (vizinhos_rainha)") +
+  ylab("Latitude") +
+  xlab("Longitude")
+mapa.viz
+```
+
   
 ## Autocorrelação espacial
 
@@ -889,7 +923,6 @@ O resultado do teste de Moran’s I indicou autocorrelação espacial positiva e
 #### Autocorrelação espacial para incidências de dengue nos municípios/RJ
 
 ```{r, echo=T, out.width='90%'}
-pesos.viz <- nb2listw(vizinhos_torre)
 moran.test(mapa$incidencia, pesos.viz)
 ```
 
@@ -912,6 +945,79 @@ Sabendo que:
 - \( w_{ij} \): peso espacial entre as regiões \( i \) e \( j \).
 - A soma considera a influência dos vizinhos \( j \) sobre o ponto \( i \), ponderada pela matriz de vizinhança.
 
+### **Mapeando os polígonos que tiveram os p-valores mais significativos no Moran Local para os casos.**
+
+```{r, echo=T,  out.width="70%"}
+mapa$pval <- localmoran(mapa$casos, pesos.viz)[,5]
+
+library(tmap)
+
+tmap_mode("plot")  # modo estático
+
+tm_shape(mapa) + 
+  tm_polygons(
+    col = "pval",
+    title = "p-valores",
+    breaks = c(0, 0.01, 0.05, 0.10, 1),
+    style = "fixed",
+    palette = "-Red"
+  )
+
+```
+
+
+### **Moran Local dos casos de dengue no Rio de Janeiro/RJ**
+
+```{r, echo=T}
+resI <- localmoran.sad(lm(mapa$casos ~ 1), 1:length(vizinhos_torre), vizinhos_torre, style = "W")
+summary(resI)[1:10,]
+```
+
+::: box-dica2 
+
+- A função `localmoran.sad()` calcula o Moran Local `(Iᵢ)` e algumas outras estatísticas associadas para cada polígono (setor).
+
+- `lm(setor.sf$tx ~ 1)`:  cria um modelo linear sem preditores (apenas o intercepto), ou seja, considera a variável `casos` como resposta a ser analisada.
+
+- `1:length(viz)`: identifica o índice de cada área/setor.
+
+- `viz`: é a estrutura de vizinhança (do tipo `nb`), que define quem é vizinho de quem.
+
+- `style = "W"`: define o estilo de normalização dos pesos espaciais (padronização row-standardized).
+
+:::
+
+- A está mostrando:
+
+  * `Local Morans I`:	Valor do I de Moran local `(Iᵢ)`, indicando se o valor do setor e seus vizinhos são semelhantes (positivo) ou diferentes (negativo).
+  
+  * `Stand. dev. (N)`:	Desvio padrão padronizado da estatística de Moran local.
+  
+  * `Pr. (N)`:	p-valor do teste de significância para o valor de `Iᵢ` (baseado na dist. normal).
+  
+  * `Saddlepoint`:	Valor do I de Moran local corrigido.
+  
+```{r, echo=T,  out.width="70%"}
+mapa$MoranLocal <- summary(resI)[,1] 
+
+library(scales)
+
+ggplot(mapa) + 
+  geom_sf(aes(fill = MoranLocal), color = 'black') +
+  scale_fill_gradientn(colours=c("blue", "white", "red"), 
+                       values=rescale(c(min(mapa$MoranLocal), 0,   max(mapa$MoranLocal))), guide="colorbar") + 
+  ggtitle("Moran local") + 
+  theme_void()
+```
+
+Neste mapa, podemos observar:
+
+- Valores altos de Local Morans I com p-valor pequeno indicam clusters estatisticamente significativos:
+
+  * Positivo + significativo $\rightarrow$ cluster alto-alto ou baixo-baixo.
+
+  * Negativo + significativo $\rightarrow$ outlier (ex: um valor alto cercado por baixos, ou o contrário).
+  
 🗺 **LISA Map**
 
 O LISA Map é a representação gráfica dos resultados do Moran Local. Ele mostra visualmente onde estão os agrupamentos significativos, como áreas de alto-alto (municípios com valores elevados cercados por vizinhos também elevados) ou baixo-baixo (municípios com baixos valores cercados por baixos). Também evidencia áreas atípicas, como municípios com desempenho muito diferente do entorno. Na prática, o LISA Map é uma ferramenta poderosa, pois transforma resultados estatísticos em informação territorial clara, facilitando a identificação de regiões críticas, a priorização de políticas públicas e o planejamento regional baseado em evidências espaciais.
@@ -931,6 +1037,74 @@ Na figura acima, observamos que o valor do Índice de Moran Global foi de $0,404
 Observando o mapa LISA (Indicadores Locais de Associação Espacial), podemos identificar diferentes padrões regionais. As áreas em vermelho (Alto-Alto) representam municípios com altas taxas da doença cercados por vizinhos igualmente afetados, formando verdadeiros "clusters de transmissão" que exigiam intervenções coordenadas e prioritárias. Por outro lado, as áreas em azul escuro (Baixo-Baixo) mostram regiões onde tanto o município quanto seus vizinhos mantiveram baixas taxas, sugerindo que estratégias de controle podem ter sido mais eficazes nessas localidades.
 
 As áreas em rosa (Alto-Baixo) e azul claro (Baixo-Alto) revelam situações de transição ou exceção, onde um município destoa do padrão de seus vizinhos. Estes são pontos de atenção para a vigilância em saúde, pois podem indicar locais onde a doença se comporta de forma diferente da região de entorno. Já as áreas em cinza (Não significante) não apresentaram padrão espacial definido, podendo refletir maior heterogeneidade local ou dinâmicas de transmissão mais complexas.
+
+
+### **LISA Map dos casos de dengue na cidade do Rio de Janeiro/RJ**
+
+  
+```{r, echo=T}
+library(spdep)
+
+#  Convertendo uma estrutura de vizinhança (objeto nb) em uma matriz de pesos espaciais padronizada
+w <- nb2listw(vizinhos_torre, style = "W")
+
+# Matriz de pesos espaciais padronizada (row-standardized)
+resI <- localmoran(mapa$casos, nb2listw(vizinhos_torre, style = "W"))
+
+# Armazena estatísticas no objeto espacial
+mapa$Ii       <- resI[,1]   # valor de Moran Local
+mapa$pvalue   <- resI[,5]   # p-valor
+
+# Valor padronizado da variável tx
+mapa$z_casos <- scale(mapa$casos)[, 1]
+
+# Média dos vizinhos (lagged value)
+lag_casos <- lag.listw(w, mapa$z_casos)
+
+# Classificação dos tipos de associação local dos clusters
+mapa$cluster_type <- "Não significativo"
+
+mapa$cluster_type[mapa$pvalue <= 0.05 & mapa$z_casos > 0 & lag_casos > 0] <- "Alto-Alto"
+mapa$cluster_type[mapa$pvalue <= 0.05 & mapa$z_casos < 0 & lag_casos < 0] <- "Baixo-Baixo"
+mapa$cluster_type[mapa$pvalue <= 0.05 & mapa$z_casos > 0 & lag_casos < 0] <- "Alto-Baixo"
+mapa$cluster_type[mapa$pvalue <= 0.05 & mapa$z_casos < 0 & lag_casos > 0] <- "Baixo-Alto"
+
+
+```
+  
+```{r, echo=T,  out.width="80%"}
+library(tmap)
+
+# Modo estático (ideal para relatórios impressos ou PDF)
+tmap_mode("plot")
+
+# Tema visual limpo com fundo branco
+tmap_style("white")
+
+# Geração do mapa LISA
+tm_shape(mapa) +
+  tm_fill(
+    col = "cluster_type",
+    palette = c(
+      "Alto-Alto"         = "#E60000",  # vermelho forte
+      "Baixo-Baixo"       = "#0033CC",  # azul escuro
+      "Baixo-Alto"        = "#9999FF",  # azul claro
+      "Alto-Baixo"        = "#FF9999",  # rosa claro
+      "Não significativo" = "#FFFFFF"   # branco
+    ),
+    title = "Cluster Local (LISA)",
+    legend.is.portrait = TRUE
+  ) +
+  tm_borders(col = "gray40", lwd = 0.4) +
+  tm_layout(
+    main.title = "Mapa LISA - Clusters Locais dos Casos",
+    main.title.size = 1.2,
+    legend.outside = TRUE,
+    frame = FALSE,
+    bg.color = "white"
+  )
+
+```
 
 🎯 Diferença resumida
 
