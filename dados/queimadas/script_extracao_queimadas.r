@@ -1,3 +1,22 @@
+###########################################################
+########### Base Rio de JAneiro #######################
+#######################################################
+# Carregar o pacote
+library(geobr)
+library(sf)  # O geobr carrega automaticamente, mas é bom garantir
+
+# Baixar a malha de todos os municípios do estado do Rio de Janeiro para 2022
+mapa_rj <- read_municipality(code_muni = "RJ", year = 2022)
+
+# Visualizar um resumo dos dados baixados
+print(mapa_rj)
+
+# Exportar o objeto sf para o formato Shapefile
+st_write(mapa_rj, dsn = "/home/wagner/Google Drive/UFRRJ/Estatistica_Espacial_EAD_2026/malhas/mapa_rj.shp", driver = "ESRI Shapefile")
+
+#######################################################
+########### Pacote queimadasR ######################
+#################################################
 # Instalar remotes (se necessário)
 install.packages("remotes")
 

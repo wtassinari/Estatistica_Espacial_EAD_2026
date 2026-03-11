@@ -1252,19 +1252,48 @@ $\rightarrow$ Quanto menor $d_{ij}$, maior é o peso de $j$ na estimação de $\
 [Fonte: ARDILLY, Pascal et al. Manuel d’analyse spatiale. 2018.](https://ec.europa.eu/eurostat/documents/3859598/9462709/INSEE-ESTAT-SPATIAL-ANA-18-EN.pdf)
 
 
-### **Ajustando o modelo de regressão linear simples.**
+#### Utilizando os dados de queimadas no estado do Rio de Janeiro em 2025 para exemplificar a aplicação de modelos de regressão espacial.
+
+```{r, echo=T,  out.width="70%"}
+# lendo o mapa do Rio de Janeiro
+library(sf)
+
+# Ler o arquivo
+mapa_rj <- st_read("malhas/mapa_rj.shp")
+```
+
+```{r, echo=T,  out.width="70%"}
+# lendo a base de queimadas
+dados <- readxl::read_excel("dados/queimadas/queimadas_area.xlsx")
+```
+
+
+```{r, echo=T,  out.width="70%"}
+library(dplyr)
+# Padronizar os nomes dos municípios em ambos os dataframes
+mapa_rj <- mapa_rj %>%
+  mutate(name_mn = tolower(name_mn))
+
+dados <- dados %>%
+  mutate(name_mn = tolower(name_mn))
+
+# Fazer o left join usando as novas colunas padronizadas
+mapa_rj <- mapa_rj %>%
+  left_join(dados, by = "name_mn")
+```
 
 ```{r, echo=T,  out.width="70%"}
 # Ajustando o modelo de regressão linear simples
-dengue.lm <- lm(casos ~ 1, data = mapa)
-summary(dengue.lm)
+queimadas.lm <- lm(media_frp ~ 1, data = mapa_rj)
+summary(queimadas.lm)
 ```
 
 ### Checando os residuos para verificar a presença de autocorrelação.
 
 ```{r, echo=T,  out.width="70%"}
-dengue.lm$lmresid <- residuals(dengue.lm)
-moran.test(dengue.lm$lmresid, pesos.viz)
+library(spdep)
+queimadas.lm$lmresid <- residuals(queimadas.lm)
+moran.test(queimadas.lm$lmresid, pesos.viz)
 ```
 
 ### Ajustando o modelo CAR (Spatial Error Model)
@@ -1275,9 +1304,9 @@ $$y_i = \beta_0 + \sum^{p}_{k} \beta_k x_{ik}  + \varepsilon_i$$
 $$\varepsilon_i = \lambda  W + \xi$$
 
 ```{r, echo=T,  out.width="70%"}
-# library(spatialreg)
-# dengue.car <- errorsarlm(casos ~ 1, data = mapa, listw = pesos.viz)
-# summary(dengue.car)
+library(spatialreg)
+queimadas.car <- errorsarlm(media_frp ~ 1, data = mapa_rj, listw = pesos.viz, Durbin = FALSE)
+summary(queimadas.car)
 ```
 
 # 👉 Aplicações da Estatística Espacial 
