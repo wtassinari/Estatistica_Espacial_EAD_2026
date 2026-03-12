@@ -1254,7 +1254,7 @@ $\rightarrow$ Quanto menor $d_{ij}$, maior é o peso de $j$ na estimação de $\
 
 #### Utilizando os dados de queimadas no estado do Rio de Janeiro em 2025 para exemplificar a aplicação de modelos de regressão espacial.
 
-```{r, echo=T,  out.width="70%"}
+```{r, echo=TRUE, out.width="70%", warning=FALSE, message=FALSE}
 # lendo o mapa do Rio de Janeiro
 library(sf)
 
@@ -1282,11 +1282,36 @@ mapa_rj <- mapa_rj %>%
   left_join(dados, by = "name_mn")
 ```
 
+### Checando a variável resposta a presença de autocorrelação.
+
+```{r, echo=T,  out.width="70%"}
+mapa_seq <- ggplot(mapa_rj) +
+  geom_sf(aes(fill = media_frp), color = "black", size = 0.1) +
+  scale_fill_gradientn(
+    colors = c("#2c7bb6", "#abd9e9", "#ffffbf", "#fdae61", "#d7191c"),
+    name = "FRP Médio"
+  ) +
+  labs(title = "Média do FRP - Personalizado") +
+  theme_void()
+
+
+mapa_seq
+
+
+```
+
+```{r, echo=T,  out.width="70%"}
+moran.test(mapa_rj$media_frp, pesos.viz)
+```
+
+
 ```{r, echo=T,  out.width="70%"}
 # Ajustando o modelo de regressão linear simples
 queimadas.lm <- lm(media_frp ~ 1, data = mapa_rj)
 summary(queimadas.lm)
 ```
+
+
 
 ### Checando os residuos para verificar a presença de autocorrelação.
 
@@ -1294,6 +1319,7 @@ summary(queimadas.lm)
 library(spdep)
 queimadas.lm$lmresid <- residuals(queimadas.lm)
 moran.test(queimadas.lm$lmresid, pesos.viz)
+
 ```
 
 ### Ajustando o modelo CAR (Spatial Error Model)
@@ -1305,7 +1331,7 @@ $$\varepsilon_i = \lambda  W + \xi$$
 
 ```{r, echo=T,  out.width="70%"}
 library(spatialreg)
-queimadas.car <- errorsarlm(media_frp ~ 1, data = mapa_rj, listw = pesos.viz, Durbin = FALSE)
+queimadas.car <- errorsarlm(media_frp_sim ~ 1, data = mapa_rj, listw = pesos.viz, Durbin = FALSE)
 summary(queimadas.car)
 ```
 
