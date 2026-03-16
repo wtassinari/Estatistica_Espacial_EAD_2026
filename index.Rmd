@@ -375,20 +375,20 @@ Se dois mapas tiverem CRSs diferentes, os pontos não vão se alinhar corretamen
 
 **OBS:** Se quiser saber um pouco mais a respeito do CRS, basta acessar ([link](https://rspatial.org/raster/spatial/6-crs.html))
 
-  
-```{r, echo=T, out.width='90%'}
+### Baixando o mapa
+
+```{r, echo=T, out.width='90%', message=FALSE, warning=FALSE, comments=NA}
 library(geobr)
 
 # Baixar polígono do RJ (código IBGE = 33)
 rj <- read_state(code_state = 33, year = 2020)
 ```
   
-```{r, echo=T, out.width='90%'}
-library(geobr)
 
-# Baixar polígono do RJ (código IBGE = 33)
-rj <- read_state(code_state = 33, year = 2020)
+```{r, echo=T, out.width='90%', message=FALSE, warning=FALSE, comments=NA}
+plot(rj, title = "Contorno no estato do Rio de Janeiro")
 ```
+  
   
 ```{r, echo=T, out.width='90%'}
 library(ggplot2)
@@ -570,7 +570,7 @@ A imagem mostra a interpolação do teor de argila em uma área agrícola da Faz
 
 O mapa temático tem como principal objetivo visualizar e analisar a distribuição espacial de um fenômeno específico.
 
-**Mapa Temático Mundial da Expectativa de Vida entre os Países**
+### Mapa Temático Mundial da Expectativa de Vida entre os Países
 
 ```{r, echo=T, out.width='90%'}
 library(tmap)
@@ -580,7 +580,7 @@ tmap_style("classic")
 qtm(World, fill = "life_exp")
 ```
 
-**Mapa Temático da incidência de dengue no estado do Rio de Janeiro**
+### Mapa Temático da incidência de dengue no estado do Rio de Janeiro
 
 ```{r, echo=T, out.width='90%'}
 # ============================================================================
@@ -597,8 +597,13 @@ dengue <- read_excel("dados/dengue/dengue2025.xlsx") |>
 
 head(dengue)
 ```
+#### Lendo o Mapa {.tabset}
 
-```{r, echo=T, out.width='90%'}
+##### Baixando via `geobr`
+
+Para acessar os dados dos limites territoriais de todos os estados brasileiros é necessário utilizar a função `read_state`.
+
+```{r, echo=T, out.width='90%', message=FALSE, warning=FALSE, comments=NA}
 # ============================================================================
 # 2. BAIXAR MALHA MUNICIPAL DO RJ
 # ============================================================================
@@ -609,10 +614,42 @@ library(geobr)
 
 mapa_rj <- read_municipality(code_muni = 33, year = 2024) |>
         mutate(code_muni = as.character(code_muni))
-
-# Visualizar rapidamente o mapa
-plot(mapa_rj$geom, main = "Municípios do Estado do Rio de Janeiro")
 ```
+
+##### Lendo o `arquivo.shp`
+
+Supondo o `shape file` já estar em algum diretório.
+
+```{r, echo=T, eval=FALSE, message=FALSE, warning=FALSE, comments=NA}
+mapa_rj <- st_read("malhas/mapa_rj.shp")
+```
+
+Renomeando as variáveis para ser semelhante ao objeto proveniente do `geobr`:
+
+```{r, echo=T, eval=FALSE, message=FALSE, warning=FALSE, comments=NA, }
+
+mapa_rj <- mapa_rj %>%
+  rename(
+    code_muni   = code_mn,
+    name_muni = name_mn,
+    code_state = cod_stt,
+    abbrev_state = abbrv_s,
+    name_state   = nam_stt,
+    code_region  = cod_rgn,
+    name_region  = nam_rgn,
+    geom         = geometry
+  )
+```
+
+#### Primeiro, vamos fazer um gráfico apenas com as geometrias.
+
+```{r, echo=T, out.width='90%'}
+# Visualizar rapidamente o mapa
+ggplot(mapa_rj) + 
+  geom_sf()
+```
+
+
 
 ```{r, echo=T, out.width='90%'}
 # ============================================================================
@@ -734,7 +771,7 @@ ggplot() +
         axis.text = element_blank(),
         axis.title = element_blank())
 ```
-### Matriz de Vizinhança
+#### Matriz de Vizinhança
 
 A matriz de vizinhança é um instrumento fundamental da Estatística Espacial utilizado para representar formalmente quais áreas são consideradas vizinhas entre si. Em termos simples, ela transforma o mapa em uma estrutura matemática que indica quem é vizinho de quem.
 
@@ -846,7 +883,7 @@ dim(matriz_vizinhos_rainha)
 
 ```
 
-### Verificando a malha de conectividade da vizinhança da cidade do Rio de Janeiro/RJ
+#### Verificando a malha de conectividade da vizinhança da cidade do Rio de Janeiro/RJ
 
 * Iremos precisar da coordenadas dos centróides para montar a malha de conectividade.
 
@@ -945,7 +982,7 @@ Sabendo que:
 - \( w_{ij} \): peso espacial entre as regiões \( i \) e \( j \).
 - A soma considera a influência dos vizinhos \( j \) sobre o ponto \( i \), ponderada pela matriz de vizinhança.
 
-### **Mapeando os polígonos que tiveram os p-valores mais significativos no Moran Local para os casos.**
+#### Mapeando os polígonos que tiveram os p-valores mais significativos no Moran Local para os casos.
 
 ```{r, echo=T,  out.width="70%"}
 mapa$pval <- localmoran(mapa$casos, pesos.viz)[,5]
@@ -966,7 +1003,7 @@ tm_shape(mapa) +
 ```
 
 
-### **Moran Local dos casos de dengue no Rio de Janeiro/RJ**
+#### Moran Local dos casos de dengue no Rio de Janeiro/RJ
 
 ```{r, echo=T}
 resI <- localmoran.sad(lm(mapa$casos ~ 1), 1:length(vizinhos_torre), vizinhos_torre, style = "W")
@@ -1067,7 +1104,7 @@ Observando o mapa LISA (Indicadores Locais de Associação Espacial), podemos id
 As áreas em rosa (Alto-Baixo) e azul claro (Baixo-Alto) revelam situações de transição ou exceção, onde um município destoa do padrão de seus vizinhos. Estes são pontos de atenção para a vigilância em saúde, pois podem indicar locais onde a doença se comporta de forma diferente da região de entorno. Já as áreas em cinza (Não significante) não apresentaram padrão espacial definido, podendo refletir maior heterogeneidade local ou dinâmicas de transmissão mais complexas.
 
 
-### **LISA Map dos casos de dengue na cidade do Rio de Janeiro/RJ**
+#### **LISA Map dos casos de dengue na cidade do Rio de Janeiro/RJ**
 
   
 ```{r, echo=T}

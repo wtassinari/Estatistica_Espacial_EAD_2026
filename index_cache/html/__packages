@@ -15,6 +15,13 @@ sp
 scales
 Matrix
 spatialreg
+spgwr
+gridExtra
+RColorBrewer
+sm
+zoo
+vioplot
+colorspace
 cholera
 spatstat.data
 spatstat.univar
@@ -35,10 +42,3 @@ automap
 leaflet
 leaflet.extras2
 leafem
-spgwr
-gridExtra
-RColorBrewer
-sm
-zoo
-vioplot
-colorspace
