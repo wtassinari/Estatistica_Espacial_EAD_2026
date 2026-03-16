@@ -11,6 +11,10 @@ viridis
 classInt
 spData
 spdep
+sp
+scales
+Matrix
+spatialreg
 cholera
 spatstat.data
 spatstat.univar
@@ -23,7 +27,6 @@ spatstat.model
 spatstat.linnet
 spatstat
 MASS
-sp
 raster
 plotly
 gstat
@@ -32,6 +35,10 @@ automap
 leaflet
 leaflet.extras2
 leafem
-scales
-Matrix
-spatialreg
+spgwr
+gridExtra
+RColorBrewer
+sm
+zoo
+vioplot
+colorspace
