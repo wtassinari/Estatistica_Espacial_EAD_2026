@@ -170,6 +170,95 @@ include_graphics('figuras/padroes_pontuais.png')
   - 🔫 Registros de ocorrências de crimes em uma área urbana.
 :::
 
+### **Exemplo:** Focos de incêndios ocorridos no estado do Rio de Janeiro/Brasil no mês de dezembro de 2025.
+
+* Primeiro vamos ler dos dados:
+
+```{r, echo=T, out.width='90%'}
+library(readxl)
+  
+# Carregar o arquivo
+dados_pontos <- read_excel("dados/queimadas/queimadas_pontos.xlsx")
+```
+
+#### Transformar os dados na classe de padrões pontuais:
+
+```{r, echo=T, out.width='90%'}
+library(sf)
+
+pontos_sf <- st_as_sf(dados_pontos, 
+                      coords = c("longitude", "latitude"),
+                       crs = 4326)
+```
+
+::: box-dica2
+
+- `library(sf)`: carrega o pacote **sf** (*Simple Features*), que permite trabalhar com dados espaciais no R.
+
+- `st_as_sf()`: converte um data frame comum em um objeto espacial do tipo **sf**.
+
+- `dados_pontos`: é o data frame de entrada que contém as colunas de coordenadas.
+
+- `coords = c("longitude", "latitude")`: indica quais colunas do data frame representam as coordenadas geográficas (x e y).
+
+- `crs = 4326`: define o Sistema de Referência de Coordenadas — o código **4326** corresponde ao *datum* **WGS 84**, o padrão usado pelo GPS.
+
+:::
+
+
+::: box-dica3
+
+📌 O que é CRS (Coordinate Reference System) ?
+
+O CRS é como uma “regra de tradução” entre o que está em um mapa e o mundo real. Ele define como as coordenadas (como 140, 12) se relacionam com locais verdadeiros na Terra, dizendo se os valores estão em metros, graus ou outra unidade, e onde fica o ponto de partida (a origem). Sem um CRS, uma coordenada não tem significado, pois não sabemos onde ela realmente está nem em que escala.
+
+🗺️ Por que isso é importante ?
+
+Se dois mapas tiverem CRSs diferentes, os pontos não vão se alinhar corretamente — como tentar juntar peças de quebra-cabeça de caixas diferentes. Usar o CRS certo garante que todas as informações espaciais estejam bem posicionadas e coerentes. Por exemplo, o WGS 84 é usado por GPS e Google Maps (em graus), enquanto o UTM é usado para mapas locais mais precisos (em metros). Saber isso evita erros em análises espaciais e garante que os dados “conversem” entre si.
+
+**OBS:** Se quiser saber um pouco mais a respeito do CRS, basta acessar ([link](https://rspatial.org/raster/spatial/6-crs.html))
+
+:::
+
+#### Lendo o Mapa {.tabset}
+
+
+##### Baixando o mapa via biblioteca `geobr`
+
+```{r, echo=T, out.width='90%', message=FALSE, warning=FALSE, comments=NA}
+library(geobr)
+
+# Baixar polígono do RJ (código IBGE = 33)
+rj_contorno <- read_state(code_state = 33, year = 2020)
+```
+
+##### Lendo o `arquivo.shp`
+
+```{r, echo=T, out.width='90%', message=FALSE, warning=FALSE, comments=NA}
+rj_contorno <- st_read("malhas/rj_contorno.shp")
+```
+
+#### Plotando o mapa
+
+```{r, echo=T, out.width='90%', message=FALSE, warning=FALSE, comments=NA}
+plot(rj_contorno, title = "Contorno no estato do Rio de Janeiro")
+```
+  
+####  Visualizar o mapa com os pontos
+
+```{r, echo=T, out.width='90%'}
+library(ggplot2)
+# Plotar
+ggplot() +
+   geom_sf(data = rj_contorno, fill = "lightgreen", color = "black") +
+   geom_sf(data = pontos_sf, color = "red", size = 1.0, alpha = 0.7) +
+   labs(title = "Focos de Queimadas - Rio de Janeiro",
+       caption = "Fonte: INPE") +
+  theme_minimal()
+```
+
+
+
 ## Geoestatística
   
 Dados usados em geoestatística são atributos contínuos medidos em localizações fixas, na maioria das vezes amostrados no espaço geográfico, e que queremos analisar para entender como um fenômeno varia no espaço.
@@ -206,7 +295,75 @@ include_graphics('figuras/dados_geoestatisticos.png')
 Neste tipo de dado, o evento aleatório de interesse é a posição espacial onde o fenômeno ocorre, e não uma variável medida em si. A análise busca entender se os pontos seguem um padrão aleatório, agrupado (clusters) ou disperso no espaço.
 
 :::
+
+### **Exemplo:** Os focos com os FRP (*Fire Radiative Power*) ocorridos no estado do Rio de Janeiro/Brasil no mês de dezembro de 2025.
+
+* Primeiro vamos ler dos dados:
+
+```{r, echo=T, out.width='90%'}
+library(readxl)
   
+# Carregar o arquivo
+dados_geo <- read_excel("dados/queimadas/queimadas_geo.xlsx")
+```
+
+#### Transformar os dados em um objeto espacial:
+
+```{r, echo=T, out.width='90%'}
+library(sp)
+
+sp::coordinates(dados_geo) <- ~  longitude + latitude
+
+# Definir projeção
+proj4string(dados_geo) <- CRS("+init=epsg:4326")  # WGS84
+
+```
+
+#### Plotar os pontos:
+
+```{r, echo=T, out.width='90%'}
+spplot(dados_geo['frp'], scales=list(draw=T), key.space="right", colorkey=T)
+```
+
+
+#### Lendo o Mapa {.tabset}
+
+
+##### Baixando o mapa via biblioteca `geobr`
+
+```{r, echo=T, out.width='90%', message=FALSE, warning=FALSE, comments=NA}
+library(geobr)
+
+# Baixar polígono do RJ (código IBGE = 33)
+rj_contorno <- read_state(code_state = 33, year = 2020)
+```
+
+##### Lendo o `arquivo.shp`
+
+```{r, echo=T, out.width='90%', message=FALSE, warning=FALSE, comments=NA}
+rj_contorno <- st_read("malhas/rj_contorno.shp")
+```
+
+
+####  Plotando o Bubble plot com gradiente de cor por intensidade
+
+```{r, echo=T, out.width='90%'}
+library(ggplot2)
+library(sf)
+
+# Converter objetos sp para sf
+dados_sf <- st_as_sf(dados_geo)
+
+# Plotar
+ggplot() +
+  geom_sf(data = rj_contorno, fill = "gray90", color = "black") +
+  geom_sf(data = dados_sf, aes(color = frp), size = 2, alpha = 0.7) +
+  scale_color_viridis_c(name = "FRP", option = "plasma") +
+  labs(title = "Distribuição Espacial do FRP",
+       subtitle = "Estado do Rio de Janeiro") +
+  theme_minimal()
+```
+
 ## Dados de Área
 
 Na análise espacial por áreas, o atributo de interesse costuma ser uma medida agregada (como contagem de casos, taxa de mortalidade, média de renda, etc.) calculada dentro de uma unidade geográfica bem definidas (como bairros, municípios, setores censitários ou regiões administrativas.)
@@ -244,6 +401,104 @@ include_graphics('figuras/dados_area.png')
   - 🚔 Taxa de criminalidade por distrito policial.
   - 📦 Volume de vendas por zona de entrega.
 :::
+
+
+### **Exemplo:** Quantidade de Focos de incêndios por município ocorridos no estado do Rio de Janeiro/Brasil no mês de dezembro de 2025.
+
+
+```{r, echo=TRUE, out.width="70%", warning=FALSE, message=FALSE}
+# lendo o mapa do Rio de Janeiro
+library(sf)
+
+# Ler o arquivo
+mapa_rj <- st_read("malhas/mapa_rj.shp")
+```
+
+```{r, echo=T,  out.width="70%"}
+# lendo a base de queimadas
+dados <- readxl::read_excel("dados/queimadas/queimadas_area.xlsx")
+```
+
+#### Lendo o Mapa {.tabset}
+
+##### Baixando via `geobr`
+
+Para acessar os dados dos limites territoriais de todos os estados brasileiros é necessário utilizar a função `read_state`.
+
+```{r, echo=T, out.width='90%', message=FALSE, warning=FALSE, comments=NA}
+# ============================================================================
+# 2. BAIXAR MALHA MUNICIPAL DO RJ
+# ============================================================================
+library(geobr)
+library(dplyr)
+
+# Baixar a malha municipal do estado do Rio de Janeiro
+# code_muni = 33 (código do estado do RJ)
+
+mapa_rj <- read_municipality(code_muni = 33, year = 2024) |>
+           mutate(code_muni = as.character(code_muni))
+```
+
+##### Lendo o `arquivo.shp`
+
+Supondo o `shape file` já estar em algum diretório.
+
+```{r, echo=T, eval=FALSE, message=FALSE, warning=FALSE, comments=NA}
+mapa_rj <- st_read("malhas/mapa_rj.shp")
+```
+
+Renomeando as variáveis para ser semelhante ao objeto proveniente do `geobr`:
+
+```{r, echo=T, eval=FALSE, message=FALSE, warning=FALSE, comments=NA, }
+
+mapa_rj <- mapa_rj %>%
+  rename(
+    code_muni   = code_mn,
+    name_muni = name_mn,
+    code_state = cod_stt,
+    abbrev_state = abbrv_s,
+    name_state   = nam_stt,
+    code_region  = cod_rgn,
+    name_region  = nam_rgn,
+    geom         = geometry
+  )
+```
+
+#### Primeiro, vamos fazer um gráfico apenas com as geometrias.
+
+```{r, echo=T, out.width='90%'}
+# Visualizar rapidamente o mapa
+ggplot(mapa_rj) + 
+  geom_sf()
+```
+
+
+```{r, echo=T,  out.width="70%"}
+# Padronizar os nomes dos municípios em ambos os dataframes
+mapa_rj <- mapa_rj %>%
+  dplyr::mutate(name_mn = tolower(name_muni))
+
+dados <- dados %>%
+  dplyr::mutate(name_mn = tolower(name_mn))
+
+# Fazer o left join usando as novas colunas padronizadas
+mapa_rj <- mapa_rj %>%
+  left_join(dados, by = "name_mn")
+```
+
+
+```{r, echo=T,  out.width="70%"}
+mapa_seq <- ggplot(mapa_rj) +
+  geom_sf(aes(fill = media_frp), color = "black", size = 0.1) +
+  scale_fill_gradientn(
+    colors = c("#2c7bb6", "#abd9e9", "#ffffbf", "#fdae61", "#d7191c"),
+    name = "FRP Médio"
+  ) +
+  labs(title = "Média do FRP - Personalizado") +
+  theme_void()
+
+mapa_seq
+```
 
 # 🗃️ Dados utilizados no curso
 
@@ -365,17 +620,7 @@ pontos_sf <- st_as_sf(dados_pontos,
                        crs = 4326)
 ```
 
-📌 O que é CRS (Coordinate Reference System) ?
-
-O CRS é como uma “regra de tradução” entre o que está em um mapa e o mundo real. Ele define como as coordenadas (como 140, 12) se relacionam com locais verdadeiros na Terra, dizendo se os valores estão em metros, graus ou outra unidade, e onde fica o ponto de partida (a origem). Sem um CRS, uma coordenada não tem significado, pois não sabemos onde ela realmente está nem em que escala.
-
-🗺️ Por que isso é importante ?
-
-Se dois mapas tiverem CRSs diferentes, os pontos não vão se alinhar corretamente — como tentar juntar peças de quebra-cabeça de caixas diferentes. Usar o CRS certo garante que todas as informações espaciais estejam bem posicionadas e coerentes. Por exemplo, o WGS 84 é usado por GPS e Google Maps (em graus), enquanto o UTM é usado para mapas locais mais precisos (em metros). Saber isso evita erros em análises espaciais e garante que os dados “conversem” entre si.
-
-**OBS:** Se quiser saber um pouco mais a respeito do CRS, basta acessar ([link](https://rspatial.org/raster/spatial/6-crs.html))
-
-### Baixando o mapa
+#### Baixando o mapa
 
 ```{r, echo=T, out.width='90%', message=FALSE, warning=FALSE, comments=NA}
 library(geobr)

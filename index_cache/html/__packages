@@ -4,14 +4,14 @@ readxl
 sf
 geobr
 ggplot2
-tmap
+sp
 dplyr
+tmap
 viridisLite
 viridis
 classInt
 spData
 spdep
-sp
 scales
 Matrix
 spatialreg
