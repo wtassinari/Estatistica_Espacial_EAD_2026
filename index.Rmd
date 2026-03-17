@@ -79,6 +79,15 @@ outputFormat <- knitr::opts_knit$get("rmarkdown.pandoc.to")
  }
 ```
 
+# 🗃️ Dados utilizados no curso
+
+📥 [Clique aqui para baixar os dados que iremos utilizar durante as aulas](https://drive.google.com/drive/folders/1lBUWVYcwFDBqrxdz6s0oxaiCS8gAVWj7?usp=sharing)
+
+1) Basta baixar o arquivo `Estatistica_Espacial.zip` e descomprimir;
+
+2) Clicar no arquivo que representa o projeto em R `Estatistica_Espacial.Rproj`
+
+
 # 📍 Introdução à Estatística Espacial 
 
 ## O que é Análise Estatística Espacial ?
@@ -129,385 +138,6 @@ A imagem mostra homenagens a John Snow em Soho, Londres: um retrato na fachada d
 - Segundo Cressie (1991), embora a suposição de independência entre observações torne a teoria estatística mais tratável, modelos que incorporam *dependência estatística* costumam ser mais realistas, especialmente em contextos espaciais. Nesse tipo de dado, a *dependência entre observações ocorre em múltiplas direções* e tende a diminuir conforme aumenta a distância entre os locais amostrados. Em outras palavras, valores próximos no espaço tendem a ser mais semelhantes entre si do que valores distantes, o que caracteriza a autocorrelação espacial.
 
 - *"Todas as coisas se parecem, porém coisas mais próximas tendem a ser mais semelhantes do que aquelas mais distantes."*  (Tobler, 1979). `r colFmt(" **Também conhecida como $1^a$ Lei da Geografia**",'red')`
-
-# 🧩 Tipologia dos Dados Espaciais
-
-Os dados espaciais podem ser classificados segundo diferentes categorias, com base na natureza estocástica de suas observações e na forma como a informação geográfica é representada. Essa tipologia orienta a escolha de métodos estatísticos apropriados para análise.
-
-Segundo Noel Cressie (1993), a estatística espacial pode ser dividida em três grandes áreas:
-
-i) `r colFmt(" **Dados de Processos Pontuais ou Padrões Pontuais**",'darkmagenta')`: As observações ocorrem de maneira aleatória no espaço, como casos de uma doença, localização de crimes ou ocorrência de focos de queimadas. O objetivo é entender padrões de agrupamento, dispersão ou aleatoriedade desses pontos.
-
-ii) `r colFmt(" **Dados de Geoestatística**",'darkmagenta')`: Refere-se as observações que apresentam um atributo mensuravél em localizações contínuas ou irregulares (por exemplo, temperatura, poluição, altitude, teor de argila). Nesses casos, há interesse na dependência espacial entre valores próximos e na interpolação de valores para locais não amostrados, por meio de métodos como krigagem.
-
-iii) `r colFmt(" **Dados de Área**",'darkmagenta')`: Representam fenômenos agregados por unidades geográficas, como municípios, distritos ou setores censitários. As análises incluem autocorrelação espacial (ex: I de Moran) e modelos de regressão espacial adaptados a dados agregados.
-
-## Padrões Pontuais
-
-O principal interesse está no conjunto de coordenadas geográficas representando as localizações exatas de eventos.
-
-* Estrutura dos dados com padrão de pontos
-
-
-  |   Latitude   |  Longitude | 
-  |:-----------:|:------------:|
-  |   -22.90    |   -43.20     |  
-  |   -22.91    |   -43.22     |   
-  |   -22.92    |   -43.18     |  
-  |    ...   | ... |
-  
-```{r echo=FALSE, fig.align="center", out.width="80%", fig.cap="<span style='font-size:9px'>Fonte: Elaboração própria com auxílio do ChatGPT (OpenAI), 2026.</span>"}
-include_graphics('figuras/padroes_pontuais.png')
-```
-
-**Exemplos de aplicação:**
-
-::: box-dica3
-  - 🏥 Localização de casos de uma doença notificados em uma cidade.
-  - 🌳 Distribuição espacial de árvores em um parque urbano.
-  - 🐾 Registros de avistamentos de animais silvestres em uma reserva.
-  - 🔥 Pontos de ocorrência de focos de incêndio florestal detectados por satélite.
-  - 🔫 Registros de ocorrências de crimes em uma área urbana.
-:::
-
-### **Exemplo:** Focos de incêndios ocorridos no estado do Rio de Janeiro/Brasil no mês de dezembro de 2025.
-
-* Primeiro vamos ler dos dados:
-
-```{r, echo=T, out.width='90%'}
-library(readxl)
-  
-# Carregar o arquivo
-dados_pontos <- read_excel("dados/queimadas/queimadas_pontos.xlsx")
-```
-
-#### Transformar os dados na classe de padrões pontuais:
-
-```{r, echo=T, out.width='90%'}
-library(sf)
-
-pontos_sf <- st_as_sf(dados_pontos, 
-                      coords = c("longitude", "latitude"),
-                       crs = 4326)
-```
-
-::: box-dica2
-
-- `library(sf)`: carrega o pacote **sf** (*Simple Features*), que permite trabalhar com dados espaciais no R.
-
-- `st_as_sf()`: converte um data frame comum em um objeto espacial do tipo **sf**.
-
-- `dados_pontos`: é o data frame de entrada que contém as colunas de coordenadas.
-
-- `coords = c("longitude", "latitude")`: indica quais colunas do data frame representam as coordenadas geográficas (x e y).
-
-- `crs = 4326`: define o Sistema de Referência de Coordenadas — o código **4326** corresponde ao *datum* **WGS 84**, o padrão usado pelo GPS.
-
-:::
-
-
-::: box-dica3
-
-📌 O que é CRS (Coordinate Reference System) ?
-
-O CRS é como uma “regra de tradução” entre o que está em um mapa e o mundo real. Ele define como as coordenadas (como 140, 12) se relacionam com locais verdadeiros na Terra, dizendo se os valores estão em metros, graus ou outra unidade, e onde fica o ponto de partida (a origem). Sem um CRS, uma coordenada não tem significado, pois não sabemos onde ela realmente está nem em que escala.
-
-🗺️ Por que isso é importante ?
-
-Se dois mapas tiverem CRSs diferentes, os pontos não vão se alinhar corretamente — como tentar juntar peças de quebra-cabeça de caixas diferentes. Usar o CRS certo garante que todas as informações espaciais estejam bem posicionadas e coerentes. Por exemplo, o WGS 84 é usado por GPS e Google Maps (em graus), enquanto o UTM é usado para mapas locais mais precisos (em metros). Saber isso evita erros em análises espaciais e garante que os dados “conversem” entre si.
-
-**OBS:** Se quiser saber um pouco mais a respeito do CRS, basta acessar ([link](https://rspatial.org/raster/spatial/6-crs.html))
-
-:::
-
-#### Lendo o Mapa {.tabset}
-
-
-##### Baixando o mapa via biblioteca `geobr`
-
-```{r, echo=T, out.width='90%', message=FALSE, warning=FALSE, comments=NA}
-library(geobr)
-
-# Baixar polígono do RJ (código IBGE = 33)
-rj_contorno <- read_state(code_state = 33, year = 2020)
-```
-
-##### Lendo o `arquivo.shp`
-
-```{r, echo=T, out.width='90%', message=FALSE, warning=FALSE, comments=NA}
-rj_contorno <- st_read("malhas/rj_contorno.shp")
-```
-
-#### Plotando o mapa
-
-```{r, echo=T, out.width='90%', message=FALSE, warning=FALSE, comments=NA}
-plot(rj_contorno, title = "Contorno no estato do Rio de Janeiro")
-```
-  
-####  Visualizar o mapa com os pontos
-
-```{r, echo=T, out.width='90%'}
-library(ggplot2)
-# Plotar
-ggplot() +
-   geom_sf(data = rj_contorno, fill = "lightgreen", color = "black") +
-   geom_sf(data = pontos_sf, color = "red", size = 1.0, alpha = 0.7) +
-   labs(title = "Focos de Queimadas - Rio de Janeiro",
-       caption = "Fonte: INPE") +
-  theme_minimal()
-```
-
-
-
-## Geoestatística
-  
-Dados usados em geoestatística são atributos contínuos medidos em localizações fixas, na maioria das vezes amostrados no espaço geográfico, e que queremos analisar para entender como um fenômeno varia no espaço.
-
-* Estrutura dos dados geoestatísticos
-
-
-  |   Latitude   |  Longitude   | Atributo Mensurado |
-  |:-----------:|:------------:|:----------------:|
-  |   -22.90    |   -43.20     |       5.4        |
-  |   -22.91    |   -43.22     |       6.1        |
-  |   -22.92    |   -43.18     |       5.9        |
-  |    ...   | ... | ... |
-  
-  
-```{r echo=FALSE, fig.align="center", out.width="80%", fig.cap="<span style='font-size:9px'>Fonte: Elaboração própria com auxílio do ChatGPT (OpenAI), 2026.</span>"}
-include_graphics('figuras/dados_geoestatisticos.png')
-```
-
-**Exemplos de aplicação:**
-  
-::: box-dica3
-  - 🌧️ Medição da quantidade de chuva em diferentes locais de uma cidade.</li>
-  - 🦟 Contagem de ovos de Aedes aegypti em ovitrampas.</li>
-  - 🌫️ Concentração de poluentes no ar em pontos georreferenciados.</li>
-  - 🌽 Análise da produtividade agrícola em diferentes talhões de uma fazenda.</li>
-  
-:::
-  
-* Umas das aplicações mais importantes da geoestatística é a interpolação de dados, ou seja, estimação de valores em locais onde não há medição.
-
-
-::: box-dica2
-Neste tipo de dado, o evento aleatório de interesse é a posição espacial onde o fenômeno ocorre, e não uma variável medida em si. A análise busca entender se os pontos seguem um padrão aleatório, agrupado (clusters) ou disperso no espaço.
-
-:::
-
-### **Exemplo:** Os focos com os FRP (*Fire Radiative Power*) ocorridos no estado do Rio de Janeiro/Brasil no mês de dezembro de 2025.
-
-* Primeiro vamos ler dos dados:
-
-```{r, echo=T, out.width='90%'}
-library(readxl)
-  
-# Carregar o arquivo
-dados_geo <- read_excel("dados/queimadas/queimadas_geo.xlsx")
-```
-
-#### Transformar os dados em um objeto espacial:
-
-```{r, echo=T, out.width='90%'}
-library(sp)
-
-sp::coordinates(dados_geo) <- ~  longitude + latitude
-
-# Definir projeção
-proj4string(dados_geo) <- CRS("+init=epsg:4326")  # WGS84
-
-```
-
-#### Plotar os pontos:
-
-```{r, echo=T, out.width='90%'}
-spplot(dados_geo['frp'], scales=list(draw=T), key.space="right", colorkey=T)
-```
-
-
-#### Lendo o Mapa {.tabset}
-
-
-##### Baixando o mapa via biblioteca `geobr`
-
-```{r, echo=T, out.width='90%', message=FALSE, warning=FALSE, comments=NA}
-library(geobr)
-
-# Baixar polígono do RJ (código IBGE = 33)
-rj_contorno <- read_state(code_state = 33, year = 2020)
-```
-
-##### Lendo o `arquivo.shp`
-
-```{r, echo=T, out.width='90%', message=FALSE, warning=FALSE, comments=NA}
-rj_contorno <- st_read("malhas/rj_contorno.shp")
-```
-
-
-####  Plotando o Bubble plot com gradiente de cor por intensidade
-
-```{r, echo=T, out.width='90%'}
-library(ggplot2)
-library(sf)
-
-# Converter objetos sp para sf
-dados_sf <- st_as_sf(dados_geo)
-
-# Plotar
-ggplot() +
-  geom_sf(data = rj_contorno, fill = "gray90", color = "black") +
-  geom_sf(data = dados_sf, aes(color = frp), size = 2, alpha = 0.7) +
-  scale_color_viridis_c(name = "FRP", option = "plasma") +
-  labs(title = "Distribuição Espacial do FRP",
-       subtitle = "Estado do Rio de Janeiro") +
-  theme_minimal()
-```
-
-## Dados de Área
-
-Na análise espacial por áreas, o atributo de interesse costuma ser uma medida agregada (como contagem de casos, taxa de mortalidade, média de renda, etc.) calculada dentro de uma unidade geográfica bem definidas (como bairros, municípios, setores censitários ou regiões administrativas.)
-
-Essas áreas são representadas por polígonos, que podem ter formas irregulares e manter relações espaciais com as áreas vizinhas, seja por fronteiras compartilhadas, conexões físicas (como estradas e rios), ou por semelhanças em características socioeconômicas (como nível de renda ou acesso a serviços).
-
-::: box-dica2
-O objetivo da análise de dados de área é identificar, explicar e interpretar padrões espaciais e tendências que ocorrem entre essas unidades geográficas pré-definidas.
-
-:::
-
-* Estrutura dos dados de área
-
-
-  |   Polígono   |  Nome do Polígono   | Atributo Mensurado |
-  |:-----------:|:------------:|:----------------:|
-  |   110920    |  Alta Esperança     |       1000,50        |
-  |   123690    |  Divino     |       963,56        |
-  |   130269    |  Dourados     |       801,01        |
-    |    ...   | ... | ... |
-
-```{r echo=FALSE, fig.align="center", out.width="80%", fig.cap="<span style='font-size:9px'>Fonte: Elaboração própria com auxílio do ChatGPT (OpenAI), 2026.</span>"}
-      
-include_graphics('figuras/dados_area.png')
-```
-
-**Exemplos de aplicação:**
-
-::: box-dica3
-
-  - 🦟 Taxa de incidência de dengue por bairro em uma cidade.
-  - 💸 Renda per capita por setor censitário.
-  - 🌽 Produtividade agrícola por microrregião.
-  - 🏫 Taxa de evasão escolar por município.
-  - 🚔 Taxa de criminalidade por distrito policial.
-  - 📦 Volume de vendas por zona de entrega.
-:::
-
-
-### **Exemplo:** Quantidade de Focos de incêndios por município ocorridos no estado do Rio de Janeiro/Brasil no mês de dezembro de 2025.
-
-
-```{r, echo=TRUE, out.width="70%", warning=FALSE, message=FALSE}
-# lendo o mapa do Rio de Janeiro
-library(sf)
-
-# Ler o arquivo
-mapa_rj <- st_read("malhas/mapa_rj.shp")
-```
-
-```{r, echo=T,  out.width="70%"}
-# lendo a base de queimadas
-dados <- readxl::read_excel("dados/queimadas/queimadas_area.xlsx")
-```
-
-#### Lendo o Mapa {.tabset}
-
-##### Baixando via `geobr`
-
-Para acessar os dados dos limites territoriais de todos os estados brasileiros é necessário utilizar a função `read_state`.
-
-```{r, echo=T, out.width='90%', message=FALSE, warning=FALSE, comments=NA}
-# ============================================================================
-# 2. BAIXAR MALHA MUNICIPAL DO RJ
-# ============================================================================
-library(geobr)
-library(dplyr)
-
-# Baixar a malha municipal do estado do Rio de Janeiro
-# code_muni = 33 (código do estado do RJ)
-
-mapa_rj <- read_municipality(code_muni = 33, year = 2024) |>
-           mutate(code_muni = as.character(code_muni))
-```
-
-##### Lendo o `arquivo.shp`
-
-Supondo o `shape file` já estar em algum diretório.
-
-```{r, echo=T, eval=FALSE, message=FALSE, warning=FALSE, comments=NA}
-mapa_rj <- st_read("malhas/mapa_rj.shp")
-```
-
-Renomeando as variáveis para ser semelhante ao objeto proveniente do `geobr`:
-
-```{r, echo=T, eval=FALSE, message=FALSE, warning=FALSE, comments=NA, }
-
-mapa_rj <- mapa_rj %>%
-  rename(
-    code_muni   = code_mn,
-    name_muni = name_mn,
-    code_state = cod_stt,
-    abbrev_state = abbrv_s,
-    name_state   = nam_stt,
-    code_region  = cod_rgn,
-    name_region  = nam_rgn,
-    geom         = geometry
-  )
-```
-
-#### Primeiro, vamos fazer um gráfico apenas com as geometrias.
-
-```{r, echo=T, out.width='90%'}
-# Visualizar rapidamente o mapa
-ggplot(mapa_rj) + 
-  geom_sf()
-```
-
-
-```{r, echo=T,  out.width="70%"}
-# Padronizar os nomes dos municípios em ambos os dataframes
-mapa_rj <- mapa_rj %>%
-  dplyr::mutate(name_mn = tolower(name_muni))
-
-dados <- dados %>%
-  dplyr::mutate(name_mn = tolower(name_mn))
-
-# Fazer o left join usando as novas colunas padronizadas
-mapa_rj <- mapa_rj %>%
-  left_join(dados, by = "name_mn")
-```
-
-
-```{r, echo=T,  out.width="70%"}
-mapa_seq <- ggplot(mapa_rj) +
-  geom_sf(aes(fill = media_frp), color = "black", size = 0.1) +
-  scale_fill_gradientn(
-    colors = c("#2c7bb6", "#abd9e9", "#ffffbf", "#fdae61", "#d7191c"),
-    name = "FRP Médio"
-  ) +
-  labs(title = "Média do FRP - Personalizado") +
-  theme_void()
-
-mapa_seq
-```
-
-# 🗃️ Dados utilizados no curso
-
-📥 [Clique aqui para baixar os dados que iremos utilizar durante as aulas](https://drive.google.com/drive/folders/1lBUWVYcwFDBqrxdz6s0oxaiCS8gAVWj7?usp=sharing)
-
-1) Basta baixar o arquivo `Estatistica_Espacial.zip` e descomprimir;
-
-2) Clicar no arquivo que representa o projeto em R `Estatistica_Espacial.Rproj`
-
 
 # 🛠️ Algumas Ferramentas para Estatística Espacial
   
@@ -601,221 +231,398 @@ Fonte: [Github Geopandas](https://geopandas.org/en/stable/)
 
 🌐 **Site oficial do pacote `queimadasR`** 
   👉 [Acessar documentação](https://wtassinari.github.io/queimadasR/)
+
+# 🧩 Tipologia dos Dados Espaciais
+
+Os dados espaciais podem ser classificados segundo diferentes categorias, com base na natureza estocástica de suas observações e na forma como a informação geográfica é representada. Essa tipologia orienta a escolha de métodos estatísticos apropriados para análise.
+
+Segundo Noel Cressie (1993), a estatística espacial pode ser dividida em três grandes áreas:
+
+i) `r colFmt(" **Dados de Processos Pontuais ou Padrões Pontuais**",'darkmagenta')`: As observações ocorrem de maneira aleatória no espaço, como casos de uma doença, localização de crimes ou ocorrência de focos de queimadas. O objetivo é entender padrões de agrupamento, dispersão ou aleatoriedade desses pontos.
+
+ii) `r colFmt(" **Dados de Geoestatística**",'darkmagenta')`: Refere-se as observações que apresentam um atributo mensuravél em localizações contínuas ou irregulares (por exemplo, temperatura, poluição, altitude, teor de argila). Nesses casos, há interesse na dependência espacial entre valores próximos e na interpolação de valores para locais não amostrados, por meio de métodos como krigagem.
+
+iii) `r colFmt(" **Dados de Área**",'darkmagenta')`: Representam fenômenos agregados por unidades geográficas, como municípios, distritos ou setores censitários. As análises incluem autocorrelação espacial (ex: I de Moran) e modelos de regressão espacial adaptados a dados agregados.
+
+## 📍 Padrões Pontuais
+
+O principal interesse está no conjunto de coordenadas geográficas representando as localizações exatas de eventos.
+
+* Estrutura dos dados com padrão de pontos
+
+
+  |   Latitude   |  Longitude | 
+  |:-----------:|:------------:|
+  |   -22.90    |   -43.20     |  
+  |   -22.91    |   -43.22     |   
+  |   -22.92    |   -43.18     |  
+  |    ...   | ... |
   
-# 📍 Dados do tipo Padrões Pontuais
-  
-## Focos de incêndios ocorridos no estado do Rio de Janeiro/Brasil no mês de dezembro de 2025.
-  
+```{r echo=FALSE, fig.align="center", out.width="80%", fig.cap="<span style='font-size:9px'>Fonte: Elaboração própria com auxílio do ChatGPT (OpenAI), 2026.</span>"}
+include_graphics('figuras/padroes_pontuais.png')
+```
+
+**Exemplos de aplicação:**
+
+::: box-dica3
+  - 🏥 Localização de casos de uma doença notificados em uma cidade.
+  - 🌳 Distribuição espacial de árvores em um parque urbano.
+  - 🐾 Registros de avistamentos de animais silvestres em uma reserva.
+  - 🔥 Pontos de ocorrência de focos de incêndio florestal detectados por satélite.
+  - 🔫 Registros de ocorrências de crimes em uma área urbana.
+:::
+
+### **Exemplo:** Focos de incêndios ocorridos no estado do Rio de Janeiro/Brasil no mês de dezembro de 2025.
+
+#### Lendo os dados:
+
 ```{r, echo=T, out.width='90%'}
 library(readxl)
   
 # Carregar o arquivo
 dados_pontos <- read_excel("dados/queimadas/queimadas_pontos.xlsx")
 ```
-  
+
+####  Olhando os dados:
+
+```{r, echo=T, out.width='90%'}
+head(dados_pontos)
+```
+
+#### Transformar os dados na classe de padrões pontuais:
+
 ```{r, echo=T, out.width='90%'}
 library(sf)
+
 pontos_sf <- st_as_sf(dados_pontos, 
                       coords = c("longitude", "latitude"),
                        crs = 4326)
 ```
 
-#### Baixando o mapa
+::: box-dica2
+
+- `library(sf)`: carrega o pacote **sf** (*Simple Features*), que permite trabalhar com dados espaciais no R.
+
+- `st_as_sf()`: converte um data frame comum em um objeto espacial do tipo **sf**.
+
+- `dados_pontos`: é o data frame de entrada que contém as colunas de coordenadas.
+
+- `coords = c("longitude", "latitude")`: indica quais colunas do data frame representam as coordenadas geográficas (x e y).
+
+- `crs = 4326`: define o Sistema de Referência de Coordenadas — o código **4326** corresponde ao *datum* **WGS 84**, o padrão usado pelo GPS.
+
+:::
+
+
+::: box-dica3
+
+📌 O que é CRS (Coordinate Reference System) ?
+
+O CRS é como uma “regra de tradução” entre o que está em um mapa e o mundo real. Ele define como as coordenadas (como 140, 12) se relacionam com locais verdadeiros na Terra, dizendo se os valores estão em metros, graus ou outra unidade, e onde fica o ponto de partida (a origem). Sem um CRS, uma coordenada não tem significado, pois não sabemos onde ela realmente está nem em que escala.
+
+🗺️ Por que isso é importante ?
+
+Se dois mapas tiverem CRSs diferentes, os pontos não vão se alinhar corretamente — como tentar juntar peças de quebra-cabeça de caixas diferentes. Usar o CRS certo garante que todas as informações espaciais estejam bem posicionadas e coerentes. Por exemplo, o WGS 84 é usado por GPS e Google Maps (em graus), enquanto o UTM é usado para mapas locais mais precisos (em metros). Saber isso evita erros em análises espaciais e garante que os dados “conversem” entre si.
+
+**OBS:** Se quiser saber um pouco mais a respeito do CRS, basta acessar ([link](https://rspatial.org/raster/spatial/6-crs.html))
+
+:::
+
+#### Lendo o Mapa {.tabset}
+
+
+##### Baixando o mapa via biblioteca `geobr`
 
 ```{r, echo=T, out.width='90%', message=FALSE, warning=FALSE, comments=NA}
 library(geobr)
 
 # Baixar polígono do RJ (código IBGE = 33)
-rj <- read_state(code_state = 33, year = 2020)
+rj_contorno <- read_state(code_state = 33, year = 2020)
 ```
-  
+
+##### Lendo o `arquivo.shp`
 
 ```{r, echo=T, out.width='90%', message=FALSE, warning=FALSE, comments=NA}
-plot(rj, title = "Contorno no estato do Rio de Janeiro")
+rj_contorno <- st_read("malhas/rj_contorno.shp")
+```
+
+#### Plotando o mapa
+
+```{r, echo=T, out.width='90%', message=FALSE, warning=FALSE, comments=NA}
+plot(rj_contorno, title = "Contorno no estato do Rio de Janeiro")
 ```
   
-  
+####  Visualizar o mapa com os pontos
+
 ```{r, echo=T, out.width='90%'}
 library(ggplot2)
 # Plotar
 ggplot() +
-   geom_sf(data = rj, fill = "lightgreen", color = "black") +
+   geom_sf(data = rj_contorno, fill = "lightgreen", color = "black") +
    geom_sf(data = pontos_sf, color = "red", size = 1.0, alpha = 0.7) +
    labs(title = "Focos de Queimadas - Rio de Janeiro",
        caption = "Fonte: INPE") +
   theme_minimal()
 ```
+
+
+
+## 🌐 Geoestatística
   
-### Possíveis distribuições dos pontos
+Dados usados em geoestatística são atributos contínuos medidos em localizações fixas, na maioria das vezes amostrados no espaço geográfico, e que queremos analisar para entender como um fenômeno varia no espaço.
+
+* Estrutura dos dados geoestatísticos
+
+
+  |   Latitude   |  Longitude   | Atributo Mensurado |
+  |:-----------:|:------------:|:----------------:|
+  |   -22.90    |   -43.20     |       5.4        |
+  |   -22.91    |   -43.22     |       6.1        |
+  |   -22.92    |   -43.18     |       5.9        |
+  |    ...   | ... | ... |
   
-```{r echo=F, fig.align="center", out.width= "65%", fig.show='hold'}
-knitr::include_graphics('figuras/Cluster2.png')
+  
+```{r echo=FALSE, fig.align="center", out.width="80%", fig.cap="<span style='font-size:9px'>Fonte: Elaboração própria com auxílio do ChatGPT (OpenAI), 2026.</span>"}
+include_graphics('figuras/dados_geoestatisticos.png')
 ```
-  
-### Investigando os padrões pontuais
-  
-  
-```{r echo=F, fig.align="center", message=FALSE, warning=FALSE, comments=NA, out.width="70%", comment=NA}
-knitr::include_graphics('figuras/pontos1.jpg')
-```
-  
-  
-## Estimativas de Kernel (ou Mapas de Calor)
-  
-As estimativas de densidade kernel são uma técnica amplamente utilizada para **representar visualmente a concentração espacial de eventos pontuais**, como casos de doenças, crimes ou ocorrências de focos de calor. Essa abordagem transforma um conjunto de pontos em uma superfície contínua de intensidade, evidenciando áreas com maior ou menor densidade (nesse caso a frequencia) de eventos.
-  
-```{r echo=FALSE, fig.align="center", out.width="60%", fig.cap="Localização da ocorrência de casos de dengue em Belo Horizonte/MG"}
-  knitr::include_graphics('figuras/dengueBH.png')
-```
-  
-A técnica foi aplicada para identificar áreas de maior risco de dengue em Belo Horizonte/MG. O mapa resultante revela zonas de alta concentração de casos, o que pode subsidiar ações de controle vetorial e políticas públicas de saúde mais direcionadas.
-  
-O objetivo principal é estimar a função de intensidade espacial $\hat{\lambda}_{\tau}(u)$, que descreve a probabilidade de ocorrência de eventos em diferentes locais da região de estudo.
-  
-  
-```{r echo=F, fig.align="center", out.width= "45%", fig.show='hold'}
-knitr::include_graphics('figuras/kernel2.png')
-```
-  
-* Estimador de intensidade de distribuição de pontos: 
-    
-$$\hat{\lambda}_{\tau}(u) = \dfrac{1}{\tau^2}\sum k(\dfrac{d(u_i , u)}{\tau}) \text{   ,   } d(u_i , u) \leq \tau$$
-    
-Sabendo que:
-    
-- $\hat{\lambda}_{\tau}(u)$: estimativa da intensidade do processo pontual no ponto $u$.
-  
-- $u_i$: coordenadas dos pontos observados no plano (ex.: localização dos eventos).
-  
-- $\tau$: parâmetro de suavização (largura de banda), define o raio de influência dos pontos ao redor de $u$.
-  
-- $d(u_i, u)$: distância entre o ponto observado $u_i$ e o ponto de avaliação $u$. Normalmente, a distância euclidiana.
-  
-- Condição $d(u_i, u) \leq \tau$: garante que apenas os pontos dentro da vizinhança (de raio $\tau$) contribuam para a estimativa.
-  
-- $k(\cdot)$: função kernel que define o peso atribuído a cada ponto com base na distância. Exemplos:
-    
-i) **Kernel gaussiano**: atribui maior peso aos pontos mais próximos.
-ii) **Kernel uniforme**: todos os pontos dentro do raio recebem o mesmo peso.
-iii) **Kernel Epanechnikov**: pesos decrescem com a distância, chegando a zero na borda.
 
-
-### Como funciona:
-
-- Para cada ponto no espaço, é aplicado um funil de suavização (kernel) que distribui "peso" ao redor do ponto, atribuindo maior peso às áreas próximas e menor peso conforme a distância aumenta.
-
-- Ou seja, esse peso decresce com o aumento da distância a partir do centro, de acordo com uma função $k(\cdot)$, e é controlado por um parâmetro chamado largura de banda ($\tau$).
-
-- O resultado é uma superfície contínua de densidade, onde regiões com cores mais quentes (vermelho, laranja) indicam maior concentração de eventos.
-
-::: box-dica1
-
-🌧️ **Analogia intuitiva:**
+**Exemplos de aplicação:**
   
-  O kernel atua como um *limpador de para-brisa*, pesando mais os eventos próximos e menos os eventos muito distantes. A escolha do tamanho do limpador ($\tau$) e do tipo de movimento (forma da função kernel) define o quanto você vê ao redor do ponto onde está focando.
+::: box-dica3
+  - 🌧️ Medição da quantidade de chuva em diferentes locais de uma cidade.</li>
+  - 🦟 Contagem de ovos de Aedes aegypti em ovitrampas.</li>
+  - 🌫️ Concentração de poluentes no ar em pontos georreferenciados.</li>
+  - 🌽 Análise da produtividade agrícola em diferentes talhões de uma fazenda.</li>
+  
 :::
   
-#### **Localização da ocorrência de roubo em Belo Horizonte/MG**
-  
-```{r echo=F, fig.align="center", out.width= "50%", fig.show='hold'}
-knitr::include_graphics('figuras/kernel3.png')
-```
+* Umas das aplicações mais importantes da geoestatística é a interpolação de dados, ou seja, estimação de valores em locais onde não há medição.
 
-A figura acima mostra como diferentes larguras de banda ($500 m$, $1.500 m$ e $2.500 m$) alteram o grau de suavização:
-  
-A imagem mostra a distribuição espacial dos casos de dengue em Belo Horizonte (MG) em três larguras de banda ($\tau$) diferentes: 500 m, 1500 m e 2500 m. As cores indicam a intensidade da ocorrência, sendo azul/verde áreas com menor concentração e amarelo/vermelho áreas com maior concentração de casos.
-
-No mapa de 500 metros, observam-se muitos pequenos focos, com maior detalhamento local. Essa escala é útil para ações pontuais e operacionais, mas pode apresentar mais variações muito específicas do território. No de 1500 metros, os padrões tornam-se mais contínuos e estáveis, facilitando a identificação de áreas prioritárias em nível regional. Já no de 2500 metros, aparecem apenas grandes zonas de maior concentração, sendo mais adequado para decisões estratégicas em nível municipal.
-
-O importante é notar que a escala de análise influencia a forma como enxergamos o problema. O fenômeno é o mesmo, mas sua interpretação muda conforme a “lente” utilizada, algo fundamental para o planejamento e a tomada de decisão na gestão pública.
-
-
-[*Fonte: Referência científica: Druck, S.; Carvalho, M.S.; Câmara, G.; Monteiro, A.V.M. (eds) "Análise Espacial de Dados Geográficos". Brasília, EMBRAPA, 2004](http://www.dpi.inpe.br/gilberto/livro/analise/cap2-eventos.pdf)
-
-
-# 🌐 Dados do tipo Geoestística
-
-## Semivariograma: a base da análise espacial
-
-Uma das principais ferramentas da geoestatística é o semivariograma, que mede o quanto dois pontos próximos no espaço se parecem (ou se diferem) com relação ao valor de uma variável.
 
 ::: box-dica2
-**A ideia central é**: Se dois pontos estão muito próximos, é esperado que seus valores sejam parecidos. Já se estiverem distantes, a diferença entre os valores tende a aumentar.
+Neste tipo de dado, o evento aleatório de interesse é a posição espacial onde o fenômeno ocorre, e não uma variável medida em si. A análise busca entender se os pontos seguem um padrão aleatório, agrupado (clusters) ou disperso no espaço.
 
 :::
-  
-A versão experimental do semivariograma é calculada para diferentes distâncias entre os pontos, usando a seguinte fórmula:
-  
-  <!-- * A determinação experimental do semivariograma, para cada valor de $x_i$, considera todos os pares de amostras $z(x)$ e $z(x+h)$, separadas pelo vetor distância $h$, a partir da equação:  -->
-  
-  <!-- ```{r echo=F, fig.align="center", out.width= "25%", fig.show='hold'} -->
-  <!-- knitr::include_graphics('figuras/variograma3.png') -->
-  <!-- ``` -->
-  
-  
-  
-$$\hat{\gamma}(h) = \dfrac{1}{2N(h)}\sum^{N(h)}_{i=1}[z(x_i) - z(x_i + h)]^2 $$
-Sabendo que:
-  
-- $\hat{\gamma}(h)$: valor estimado do fenômeno para a distância $h$;
 
-- $N(h)$: número de pares de pontos separados por uma distância $h$;
+### **Exemplo:** Os focos com os FRP (*Fire Radiative Power*) ocorridos no estado do Rio de Janeiro/Brasil no mês de dezembro de 2025.
 
-- $z(x_i)$: valor observado da variável na localização $x_i$;
+* Primeiro vamos ler dos dados:
 
-- $z(x_i + h)$: valor observado da variável em um ponto a uma distância $h$ de $x_i$.
-
-* A expressão representa a \textbf{diferença média ao quadrado} entre os valores da variável observada em pares de pontos separados pela distância $h$.
-
-
-```{r echo=F, fig.align="center", out.width= "40%", fig.show='hold'}
-include_graphics('figuras/variograma1.png')
+```{r, echo=T, out.width='90%'}
+library(readxl)
+  
+# Carregar o arquivo
+dados_geo <- read_excel("dados/queimadas/queimadas_geo.xlsx")
 ```
 
-::: box-dica1
+####  Olhando os dados:
 
-📌 **Efeito Pepita (C₀)**: É a variação observada mesmo quando a distância entre os pontos é muito pequena ou zero. 
+```{r, echo=T, out.width='90%'}
+head(dados_geo)
+```
 
-📌 **Patamar (C)**: É o valor em que o variograma se estabiliza, indicando que a partir de certa distância, a variabilidade entre os pontos não aumenta mais. 
+#### Transformar os dados em um objeto espacial:
 
-📌 **Alcance (a)**: É a distância a partir da qual dois pontos deixam de estar correlacionados. Até essa distância, os valores ainda apresentam semelhança espacial, ou seja, após essa distância, tornam-se independentes.
+```{r, echo=T, out.width='90%'}
+library(sp)
+
+sp::coordinates(dados_geo) <- ~  longitude + latitude
+
+# Definindo a projeção
+proj4string(dados_geo) <- CRS("+init=epsg:4326")  # WGS84
+
+```
+
+#### Plotar os pontos:
+
+```{r, echo=T, out.width='90%'}
+spplot(dados_geo['frp'], scales=list(draw=T), key.space="right", colorkey=T)
+```
+
+#### Lendo o Mapa {.tabset}
+
+
+##### Baixando o mapa via biblioteca `geobr`
+
+```{r, echo=T, out.width='90%', message=FALSE, warning=FALSE, comments=NA}
+library(geobr)
+
+# Baixar polígono do RJ (código IBGE = 33)
+rj_contorno <- read_state(code_state = 33, year = 2020)
+```
+
+##### Lendo o `arquivo.shp`
+
+```{r, echo=T, out.width='90%', message=FALSE, warning=FALSE, comments=NA}
+rj_contorno <- st_read("malhas/rj_contorno.shp")
+```
+
+
+####  Plotando o Bubble plot com gradiente de cor por intensidade
+
+```{r, echo=T, out.width='90%'}
+library(ggplot2)
+library(sf)
+
+# Converter objetos sp para sf
+dados_sf <- st_as_sf(dados_geo)
+
+# Plotar
+ggplot() +
+  geom_sf(data = rj_contorno, fill = "gray90", color = "black") +
+  geom_sf(data = dados_sf, aes(color = frp), size = 2, alpha = 0.7) +
+  scale_color_viridis_c(name = "FRP", option = "plasma") +
+  labs(title = "Distribuição Espacial do FRP",
+       subtitle = "Estado do Rio de Janeiro") +
+  theme_minimal()
+```
+
+## 🗺️ Dados de Área
+
+Na análise espacial por áreas, o atributo de interesse costuma ser uma medida agregada (como contagem de casos, taxa de mortalidade, média de renda, etc.) calculada dentro de uma unidade geográfica bem definidas (como bairros, municípios, setores censitários ou regiões administrativas.)
+
+Essas áreas são representadas por polígonos, que podem ter formas irregulares e manter relações espaciais com as áreas vizinhas, seja por fronteiras compartilhadas, conexões físicas (como estradas e rios), ou por semelhanças em características socioeconômicas (como nível de renda ou acesso a serviços).
+
+::: box-dica2
+O objetivo da análise de dados de área é identificar, explicar e interpretar padrões espaciais e tendências que ocorrem entre essas unidades geográficas pré-definidas.
 
 :::
-  
-  
-Apesar de útil, essa fórmula não é robusta em todas as situações. Em alguns casos, a variabilidade não é constante ao longo da área estudada, o que chamamos de heterocedasticidade. Nesses cenários, modelos diferentes podem ser utilizados para representar o comportamento do semivariograma. Por exemplo:
-  
-i) **Modelo Exponencial**
-  
-ii) **Modelo Esférico**
-  
-iii) **Modelo Gaussiano**
-  
-iv) **Outros**
-  
-```{r echo=F, fig.align="center", out.width= "40%", fig.show='hold'}
-include_graphics('figuras/variograma2.png')
+
+* Estrutura dos dados de área
+
+
+  |   Polígono   |  Nome do Polígono   | Atributo Mensurado |
+  |:-----------:|:------------:|:----------------:|
+  |   110920    |  Alta Esperança     |       1000,50        |
+  |   123690    |  Divino     |       963,56        |
+  |   130269    |  Dourados     |       801,01        |
+    |    ...   | ... | ... |
+
+```{r echo=FALSE, fig.align="center", out.width="80%", fig.cap="<span style='font-size:9px'>Fonte: Elaboração própria com auxílio do ChatGPT (OpenAI), 2026.</span>"}
+      
+include_graphics('figuras/dados_area.png')
 ```
 
-* **Exemplo:** Mapa sobre o teor de argila no solo.
+**Exemplos de aplicação:**
 
-```{r echo=F, fig.align="center", out.width= "70%", fig.show='hold'}
-knitr::include_graphics('figuras/geoestatistica7.png')
+::: box-dica3
+
+  - 🦟 Taxa de incidência de dengue por bairro em uma cidade.
+  - 💸 Renda per capita por setor censitário.
+  - 🌽 Produtividade agrícola por microrregião.
+  - 🏫 Taxa de evasão escolar por município.
+  - 🚔 Taxa de criminalidade por distrito policial.
+  - 📦 Volume de vendas por zona de entrega.
+:::
+
+
+### **Exemplo:** Quantidade de Focos de incêndios por município ocorridos no estado do Rio de Janeiro/Brasil no mês de dezembro de 2025.
+
+####  Lendo os dados:
+
+```{r, echo=T,  out.width="70%"}
+# lendo a base de queimadas
+dados_area <- readxl::read_excel("dados/queimadas/queimadas_area.xlsx")
 ```
 
-A imagem mostra a interpolação do teor de argila em uma área agrícola da Fazenda Canchim (SP), a partir de amostras de solo coletadas em campo. Diversos métodos são comparados: **a geoestatística (krigagem)**, que utiliza a estrutura de dependência espacial dos dados via semivariograma e produz um mapa suavizado e estatisticamente robusto; o método do **inverso da distância (IDW)**, que pondera os pontos mais próximos com maior influência, resultando em maior detalhamento local, mas com risco de exagerar variações; a **média simples**, que suaviza os dados sem considerar plenamente a variabilidade espacial; e o método do **vizinho mais próximo**, que gera áreas abruptas ao atribuir a cada região o valor da amostra mais próxima, sem suavização. O exemplo evidencia como a escolha do método de interpolação impacta diretamente a qualidade e continuidade do mapa final.
+####  Olhando os dados:
+
+```{r, echo=T, out.width='90%'}
+head(dados_area)
+```
+
+#### Lendo o Mapa {.tabset}
+
+##### Baixando via `geobr`
+
+Para acessar os dados dos limites territoriais de todos os estados brasileiros é necessário utilizar a função `read_state`.
+
+```{r, echo=T, out.width='90%', message=FALSE, warning=FALSE, comments=NA}
+# ============================================================================
+# 2. BAIXAR MALHA MUNICIPAL DO RJ
+# ============================================================================
+library(geobr)
+library(dplyr)
+
+# Baixar a malha municipal do estado do Rio de Janeiro
+# code_muni = 33 (código do estado do RJ)
+
+mapa_rj <- read_municipality(code_muni = 33, year = 2024) |>
+           mutate(code_muni = as.character(code_muni))
+```
+
+##### Lendo o `arquivo.shp`
+
+Supondo o `shape file` já estar em algum diretório.
+
+```{r, echo=T, eval=FALSE, message=FALSE, warning=FALSE, comments=NA}
+library(sf)
+mapa_rj <- st_read("malhas/mapa_rj.shp")
+```
+
+Renomeando as variáveis para ser semelhante ao objeto proveniente do `geobr`:
+
+```{r, echo=T, eval=FALSE, message=FALSE, warning=FALSE, comments=NA, }
+
+mapa_rj <- mapa_rj %>%
+  rename(
+    code_muni   = code_mn,
+    name_muni = name_mn,
+    code_state = cod_stt,
+    abbrev_state = abbrv_s,
+    name_state   = nam_stt,
+    code_region  = cod_rgn,
+    name_region  = nam_rgn,
+    geom         = geometry
+  )
+```
+
+#### Plotando o mapa apenas com as geometrias
+
+```{r, echo=T, out.width='90%'}
+library(ggplot2)
+# Visualizar rapidamente o mapa
+ggplot(mapa_rj) + 
+  geom_sf()
+```
+
+#### Padronizando as chaves primárias
+
+```{r, echo=T,  out.width="70%"}
+# Padronizar os nomes dos municípios em ambos os dataframes
+mapa_rj <- mapa_rj %>%
+  dplyr::mutate(name_mn = tolower(name_muni))
+
+dados_area <- dados_area %>%
+  dplyr::mutate(name_mn = tolower(name_mn))
+
+# Fazer o left join usando as novas colunas padronizadas
+mapa_rj <- mapa_rj %>%
+  left_join(dados_area, by = "name_mn")
+```
 
 
-[*Fonte: Referência científica: Druck, S.; Carvalho, M.S.; Câmara, G.; Monteiro, A.V.M. (eds) "Análise Espacial de Dados Geográficos". Brasília, EMBRAPA, 2004](http://www.dpi.inpe.br/gilberto/livro/analise/cap3-superficies.pdf)
+#### Plotando o mapa temático
+
+```{r, echo=T,  out.width="70%"}
+mapa_seq <- ggplot(mapa_rj) +
+  geom_sf(aes(fill = media_frp), color = "black", size = 0.1) +
+  scale_fill_gradientn(
+    colors = c("#2c7bb6", "#abd9e9", "#ffffbf", "#fdae61", "#d7191c"),
+    name = "FRP Médio"
+  ) +
+  labs(title = "FRP médio no estado do Rio de Janeiro") +
+  theme_void()
+
+mapa_seq
+```
 
 
-# 🗺️ Dados de Área
+# 👉 Aplicações da Estatística Espacial 
 
-## Mapas Temáticos
+## **Aplicação I:** Mapa Temático Mundial da Expectativa de Vida entre os Países
 
-O mapa temático tem como principal objetivo visualizar e analisar a distribuição espacial de um fenômeno específico.
-
-### Mapa Temático Mundial da Expectativa de Vida entre os Países
+#### O mapa temático tem como principal objetivo visualizar e analisar a distribuição espacial de um fenômeno específico.
 
 ```{r, echo=T, out.width='90%'}
 library(tmap)
@@ -825,7 +632,7 @@ tmap_style("classic")
 qtm(World, fill = "life_exp")
 ```
 
-### Mapa Temático da incidência de dengue no estado do Rio de Janeiro
+## **Aplicação II:** Análise exploratória espacial da incidência de dengue no estado do Rio de Janeiro
 
 ```{r, echo=T, out.width='90%'}
 # ============================================================================
@@ -1435,16 +1242,17 @@ tm_shape(mapa) +
 :::
 
   
+## **Aplicação III:** Utilizando dos modelos de regressão espaciais nos dados de queimadas no estado do Rio de Janeiro.
 
-## Modelos de Regressão Espacial
+### Modelos de Regressão Espacial
 
-### Introdução
+#### Introdução
 
 Além das análises exploratórias para os dados espaciais de área, é possível avançar na modelagem estatística dos dados por meio de modelos espaciais que consideram a dependência espacial dos dados. Entre os mais utilizados estão os modelos de autocorrelação espacial global, como o **SAR (Simultaneous Autoregressive Model)** e o **CAR (Conditional Autoregressive Model)** (CRESSIE, 1993). O modelo SAR incorpora a dependência espacial diretamente no valor da variável dependente, assumindo que o valor observado em uma região é influenciado pelos valores das regiões vizinhas. Já o modelo CAR considera essa dependência na estrutura do erro, sendo muito utilizado em abordagens bayesianas para modelagem de risco em áreas geográficas.
 
 Outra abordagem é a dos modelos com efeitos espaciais locais, como a **Regressão Geograficamente Ponderada (GWR)** (FOTHERINGHAM et al., 2002). Diferente dos modelos SAR e CAR, que assumem relações espaciais globais, o GWR permite que os coeficientes da regressão variem ao longo do espaço, ajustando uma equação específica para cada localidade. Isso possibilita identificar como os efeitos de uma variável explicativa sobre a resposta mudam de acordo com a localização, sendo especialmente útil em contextos onde há forte heterogeneidade espacial. 
 
-### Na prática
+#### Na prática
 
 * `r colFmt(" Hipótese de independência das observações em geral é Falsa ",'orange')` $\rightarrow$  Existe dependência espacial, ou seja, o valor observado em uma localização tende a se parecer com os valores observados em locais vizinhos.
 
@@ -1455,7 +1263,7 @@ Outra abordagem é a dos modelos com efeitos espaciais locais, como a **Regress�
 * `r colFmt("**Detectada a autocorrelação espacial: e agora ?** ",'darkblue')` $\rightarrow$  É necessário adotar modelos de regressão que incorporem explicitamente os efeitos espaciais, evitando vieses nas estimativas dos coeficientes.
 
 
-### i) Modelos Globais: 
+#### i) Modelos Globais: 
 
 * Esses modelos assumem que a estrutura espacial é constante em todo o espaço geográfico. Utilizam um único parâmetro para captar a autocorrelação.
 
@@ -1497,7 +1305,7 @@ $\rightarrow$ Podemos observar que os efeitos da autocorrelação espacial são 
   
   
   
-### ii) Modelos Locais: 
+#### ii) Modelos Locais: 
   
 * Enquanto os modelos globais assumem uma relação espacial uniforme, os modelos locais admitem que os parâmetros da regressão variam ao longo do espaço geográfico.
 
@@ -1534,7 +1342,14 @@ $\rightarrow$ Quanto menor $d_{ij}$, maior é o peso de $j$ na estimação de $\
 [Fonte: ARDILLY, Pascal et al. Manuel d’analyse spatiale. 2018.](https://ec.europa.eu/eurostat/documents/3859598/9462709/INSEE-ESTAT-SPATIAL-ANA-18-EN.pdf)
 
 
-#### Utilizando os dados de queimadas no estado do Rio de Janeiro em 2025 para exemplificar a aplicação de modelos de regressão espacial.
+#### Lendo os dados de queimadas no estado do Rio de Janeiro em 2025 
+
+```{r, echo=T,  out.width="70%"}
+# lendo a base de queimadas
+dados <- readxl::read_excel("dados/queimadas/queimadas_area.xlsx")
+```
+
+#### Lendo o mapa do Rio de Janeiro e fazendo o merge com os dados de queimadas
 
 ```{r, echo=TRUE, out.width="70%", warning=FALSE, message=FALSE}
 # lendo o mapa do Rio de Janeiro
@@ -1543,12 +1358,6 @@ library(sf)
 # Ler o arquivo
 mapa_rj <- st_read("malhas/mapa_rj.shp")
 ```
-
-```{r, echo=T,  out.width="70%"}
-# lendo a base de queimadas
-dados <- readxl::read_excel("dados/queimadas/queimadas_area.xlsx")
-```
-
 
 ```{r, echo=T,  out.width="70%"}
 library(dplyr)
@@ -1564,7 +1373,7 @@ mapa_rj <- mapa_rj %>%
   left_join(dados, by = "name_mn")
 ```
 
-### Checando a variável resposta a presença de autocorrelação.
+#### Checando a variável resposta a presença de autocorrelação.
 
 ```{r, echo=T,  out.width="70%"}
 mapa_seq <- ggplot(mapa_rj) +
@@ -1582,20 +1391,20 @@ mapa_seq
 
 ```
 
+#### Moran Global do FRP Médio
+
 ```{r, echo=T,  out.width="70%"}
 moran.test(mapa_rj$media_frp, pesos.viz)
 ```
 
+#### Ajustando o modelo de regressão linear simples vazio
 
 ```{r, echo=T,  out.width="70%"}
-# Ajustando o modelo de regressão linear simples
 queimadas.lm <- lm(media_frp ~ 1, data = mapa_rj)
 summary(queimadas.lm)
 ```
 
-
-- Colocando a variável `media_dias_sem_chuva`
-
+#### Colocando a variável `media_dias_sem_chuva` no modelo
 
 ```{r, echo=T,  out.width="70%"}
 # Ajustando o modelo de regressão linear simples
@@ -1603,7 +1412,7 @@ queimadas.lm2 <- lm(media_frp ~ media_dias_sem_chuva, data = mapa_rj)
 summary(queimadas.lm2)
 ```
 
-### Checando os residuos para verificar a presença de autocorrelação.
+#### Checando os residuos para verificar a presença de autocorrelação.
 
 ```{r, echo=T,  out.width="70%"}
 library(spdep)
@@ -1612,7 +1421,7 @@ moran.test(queimadas.lm$lmresid, pesos.viz)
 
 ```
 
-### Ajustando o modelo CAR (Spatial Error Model)
+#### Ajustando o modelo CAR (Spatial Error Model) vazio
 
 O **Modelo de Erro Espacial** (*Spatial Error Model* - **CAR**), representado por:
     
@@ -1647,8 +1456,7 @@ AIC spatial $=$  $393,28$ $<$ AIC lm $=$ $395,83$, o que indica que o modelo com
 
 :::
 
-
-- Colocando algumas variáveis explicativas
+#### Colocando a variável `media_dias_sem_chuva` no modelo
 
 ```{r, echo=T,  out.width="70%"}
 queimadas.car2 <- errorsarlm(media_frp ~ media_dias_sem_chuva, data = mapa_rj, listw = pesos.viz, Durbin = FALSE)
@@ -1677,7 +1485,7 @@ AIC spatial $=$  $370,39$ $<$ AIC vazio $=$ $393,28$, o que indica que o modelo 
 
 :::
 
-### Checando os residuos para verificar a presença de autocorrelação
+#### Checando os residuos para verificar a presença de autocorrelação
 
 ```{r, echo=T,  out.width="70%"}
 queimadas.car2$carresid <- residuals(queimadas.car2)
@@ -1688,9 +1496,9 @@ Como o $p-valor = 0,467 > 0,05$, não rejeitamos a hipótese nula de ausência d
 
 Esse é exatamente o objetivo do modelo `errorsarlm`, capturar a estrutura espacial nos erros. E a ausência de autocorrelação nos resíduos valida a adequação desse modelo para os seus dados.
 
-### Ajustando o modelo GWR (Geographically Weighted Regression)
+#### Ajustando o modelo GWR (Geographically Weighted Regression)
 
-- Prim eiro vamos extrair as coordenadas dos centróides dos municípios do estado do Rio de Janeiro
+- Primeiro vamos extrair as coordenadas dos centróides dos municípios do estado do Rio de Janeiro
 
 ```{r, echo=T,  out.width="70%"}
 
@@ -1789,21 +1597,21 @@ results <- as.data.frame(queimadas.gwr$SDF)
 head(results)
 ```
 
-### Verificando a distribuição dos coeficientes de regressão para a variável `media_dias_sem_chuva`
+#### Verificando a distribuição dos coeficientes de regressão para a variável `media_dias_sem_chuva`
 
 ```{r, echo=T,  out.width="80%"}
 hist(results$media_dias_sem_chuva)
 abline(v = median(results$media_dias_sem_chuva), col = "red")
 ```
 
-### Verificando a distribuição dos *localR2*
+#### Verificando a distribuição dos *localR2*
 
 ```{r, echo=T,  out.width="80%"}
 hist(results$localR2)
 abline(v = median(results$localR2), col = "blue")
 ```
 
-### Incorporando alguns parâmetros de saída do modelo na tabela *setor.sf*
+#### Incorporando alguns parâmetros de saída do modelo na tabela *setor.sf*
 
 ```{r, echo=T,  out.width="70%"}
 mapa_rj$coef_dias_sem_chuva <- results$media_dias_sem_chuva
@@ -1811,7 +1619,7 @@ mapa_rj$localR2 <- results$localR2
 mapa_rj$pred.gwr <- results$pred
 ```
 
-### Mapa dos coeficientes de regressão para a variável lixo
+#### Mapa dos coeficientes de regressão para a variável lixo
 
 ```{r, echo=T,  out.width="80%"}
 map.dias_sem_chuvas <- ggplot(mapa_rj) +
@@ -1830,7 +1638,7 @@ map.dias_sem_chuvas
 
 ```
 
-### Checando os residuos para verificar a presença de autocorrelação para o modelo GWR.
+#### Checando os residuos para verificar a presença de autocorrelação para o modelo GWR.
 
 ```{r, echo=T,  out.width="70%"}
 # Calculando os resíduos para o modelo GWR
@@ -1839,7 +1647,7 @@ results$residuos <- mapa_rj$media_frp - results$pred
 moran.test(results$residuos, pesos.viz)
 ```
 
-### Mapeando os coeficientes de regressão para a variável `media_dias_sem_chuva` por significancia através do teste de wald
+#### Mapeando os coeficientes de regressão para a variável `media_dias_sem_chuva` por significancia através do teste de wald
 
 O teste de Wald é utilizado para avaliar a significância estatística dos coeficientes estimados em modelos de regressão, como a Regressão Ponderada Geograficamente (GWR). A estatística de Wald testa se o coeficiente estimado (\(\hat{\beta}\)) é significativamente diferente de zero, com base no seu erro padrão (\(SE(\hat{\beta})\)).
 
@@ -1891,7 +1699,7 @@ grid.arrange(map.dias_sem_chuvas, map.wald, ncol = 2)
 
 ```
 
-### Mapa dos coeficientes de determinação regionalizados ($R^2$ local).
+#### Mapa dos coeficientes de determinação regionalizados ($R^2$ local).
 
 ```{r, echo=T,  out.width="90%"}
 ggplot(mapa_rj) +
@@ -1902,7 +1710,7 @@ ggplot(mapa_rj) +
 
 ```
 
-### Verificando a distribuição dos preditos.
+#### Verificando a distribuição dos preditos.
 
 ```{r, echo=T,  out.width="100%"}
 histdens <- function(x, titulo = "") {
@@ -1933,7 +1741,7 @@ hist.gwr <- histdens(results$pred, "Pred GWR")
 Apesar dos modelos analisarem apenas o efeito da variável `media_dias_sem_chuva` sobre a `media_frp`, observa-se que o modelo `GWR` foi o único capaz de gerar uma distribuição de preditos que preserva, em boa parte, a forma assimétrica e a dispersão da variável observada. Isso indica que o impacto de  `media_frp` não é homogêneo e varia conforme a localização. Modelos tradicionais como o `LM`, ao assumirem um coeficiente global, subestimam a variabilidade local, enquanto modelos espaciais (CAR) ou locais (GWR) conseguem representar melhor essa relação dependente do espaço.
 
 
-### Mapeando os valores observados e preditos dos modelos ajustados
+#### Mapeando os valores observados e preditos dos modelos ajustados
 
 ```{r, echo=T,  out.width="100%"}
 library(RColorBrewer)
@@ -2005,7 +1813,7 @@ grid.arrange(tx.bruta, pred.lm, pred.car, pred.gwr, ncol = 2)
 
 ```
 
-### Comparando a distribuição dos resíduos dos modelos ajustados
+#### Comparando a distribuição dos resíduos dos modelos ajustados
 
 ```{r, echo=T,  out.width="90%"}
 library(vioplot)
@@ -2043,7 +1851,7 @@ abline(h = 0, lty = 2, col = "grey40")
 | **GWR** | Centrado em zero | Moderada | Menor concentração de extremos | Distribuição mais equilibrada dos resíduos, indicando melhor ajuste local e captura da heterogeneidade espacial. |
 
 
-### Mapeando os resíduos dos modelos ajustados
+#### Mapeando os resíduos dos modelos ajustados
 
 ```{r, echo=T,  out.width="100%"}
 library(ggplot2)
@@ -2120,11 +1928,138 @@ grid.arrange(res.lm, res.car, res.gwr, ncol = 2)
 
 ```
 
+## **Aplicação IV:** Análise dos pontos de ocorrência de focos de queimadas no estado do Rio de Janeiro/Brasil em dezembro de 2025
+
+#### Lendo os dados
+
+```{r, echo=T, out.width='90%'}
+library(readxl)
+  
+# Carregar o arquivo
+dados_pontos <- read_excel("dados/queimadas/queimadas_pontos.xlsx")
+```
+  
+```{r, echo=T, out.width='90%'}
+library(sf)
+pontos_sf <- st_as_sf(dados_pontos, 
+                      coords = c("longitude", "latitude"),
+                       crs = 4326)
+```
+
+#### Baixando o mapa
+
+```{r, echo=T, out.width='90%', message=FALSE, warning=FALSE, comments=NA}
+library(geobr)
+
+# Baixar polígono do RJ (código IBGE = 33)
+rj <- read_state(code_state = 33, year = 2020)
+```
+  
+
+```{r, echo=T, out.width='90%', message=FALSE, warning=FALSE, comments=NA}
+plot(rj, title = "Contorno no estato do Rio de Janeiro")
+```
+  
+  
+```{r, echo=T, out.width='90%'}
+library(ggplot2)
+# Plotar
+ggplot() +
+   geom_sf(data = rj, fill = "lightgreen", color = "black") +
+   geom_sf(data = pontos_sf, color = "red", size = 1.0, alpha = 0.7) +
+   labs(title = "Focos de Queimadas - Rio de Janeiro",
+       caption = "Fonte: INPE") +
+  theme_minimal()
+```
+  
+### Possíveis distribuições dos pontos
+  
+```{r echo=F, fig.align="center", out.width= "65%", fig.show='hold'}
+knitr::include_graphics('figuras/Cluster2.png')
+```
+  
+### Investigando os padrões pontuais
+  
+  
+```{r echo=F, fig.align="center", message=FALSE, warning=FALSE, comments=NA, out.width="70%", comment=NA}
+knitr::include_graphics('figuras/pontos1.jpg')
+```
+  
+  
+## Estimativas de Kernel (ou Mapas de Calor)
+  
+As estimativas de densidade kernel são uma técnica amplamente utilizada para **representar visualmente a concentração espacial de eventos pontuais**, como casos de doenças, crimes ou ocorrências de focos de calor. Essa abordagem transforma um conjunto de pontos em uma superfície contínua de intensidade, evidenciando áreas com maior ou menor densidade (nesse caso a frequencia) de eventos.
+  
+```{r echo=FALSE, fig.align="center", out.width="60%", fig.cap="Localização da ocorrência de casos de dengue em Belo Horizonte/MG"}
+  knitr::include_graphics('figuras/dengueBH.png')
+```
+  
+A técnica foi aplicada para identificar áreas de maior risco de dengue em Belo Horizonte/MG. O mapa resultante revela zonas de alta concentração de casos, o que pode subsidiar ações de controle vetorial e políticas públicas de saúde mais direcionadas.
+  
+O objetivo principal é estimar a função de intensidade espacial $\hat{\lambda}_{\tau}(u)$, que descreve a probabilidade de ocorrência de eventos em diferentes locais da região de estudo.
+  
+  
+```{r echo=F, fig.align="center", out.width= "45%", fig.show='hold'}
+knitr::include_graphics('figuras/kernel2.png')
+```
+  
+* Estimador de intensidade de distribuição de pontos: 
+    
+$$\hat{\lambda}_{\tau}(u) = \dfrac{1}{\tau^2}\sum k(\dfrac{d(u_i , u)}{\tau}) \text{   ,   } d(u_i , u) \leq \tau$$
+    
+Sabendo que:
+    
+- $\hat{\lambda}_{\tau}(u)$: estimativa da intensidade do processo pontual no ponto $u$.
+  
+- $u_i$: coordenadas dos pontos observados no plano (ex.: localização dos eventos).
+  
+- $\tau$: parâmetro de suavização (largura de banda), define o raio de influência dos pontos ao redor de $u$.
+  
+- $d(u_i, u)$: distância entre o ponto observado $u_i$ e o ponto de avaliação $u$. Normalmente, a distância euclidiana.
+  
+- Condição $d(u_i, u) \leq \tau$: garante que apenas os pontos dentro da vizinhança (de raio $\tau$) contribuam para a estimativa.
+  
+- $k(\cdot)$: função kernel que define o peso atribuído a cada ponto com base na distância. Exemplos:
+    
+i) **Kernel gaussiano**: atribui maior peso aos pontos mais próximos.
+ii) **Kernel uniforme**: todos os pontos dentro do raio recebem o mesmo peso.
+iii) **Kernel Epanechnikov**: pesos decrescem com a distância, chegando a zero na borda.
 
 
-# 👉 Aplicações da Estatística Espacial 
+### Como funciona:
 
-## **Aplicação I:** Estudo de John Snow
+- Para cada ponto no espaço, é aplicado um funil de suavização (kernel) que distribui "peso" ao redor do ponto, atribuindo maior peso às áreas próximas e menor peso conforme a distância aumenta.
+
+- Ou seja, esse peso decresce com o aumento da distância a partir do centro, de acordo com uma função $k(\cdot)$, e é controlado por um parâmetro chamado largura de banda ($\tau$).
+
+- O resultado é uma superfície contínua de densidade, onde regiões com cores mais quentes (vermelho, laranja) indicam maior concentração de eventos.
+
+::: box-dica1
+
+🌧️ **Analogia intuitiva:**
+  
+  O kernel atua como um *limpador de para-brisa*, pesando mais os eventos próximos e menos os eventos muito distantes. A escolha do tamanho do limpador ($\tau$) e do tipo de movimento (forma da função kernel) define o quanto você vê ao redor do ponto onde está focando.
+:::
+  
+#### **Localização da ocorrência de roubo em Belo Horizonte/MG**
+  
+```{r echo=F, fig.align="center", out.width= "50%", fig.show='hold'}
+knitr::include_graphics('figuras/kernel3.png')
+```
+
+A figura acima mostra como diferentes larguras de banda ($500 m$, $1.500 m$ e $2.500 m$) alteram o grau de suavização:
+  
+A imagem mostra a distribuição espacial dos casos de dengue em Belo Horizonte (MG) em três larguras de banda ($\tau$) diferentes: 500 m, 1500 m e 2500 m. As cores indicam a intensidade da ocorrência, sendo azul/verde áreas com menor concentração e amarelo/vermelho áreas com maior concentração de casos.
+
+No mapa de 500 metros, observam-se muitos pequenos focos, com maior detalhamento local. Essa escala é útil para ações pontuais e operacionais, mas pode apresentar mais variações muito específicas do território. No de 1500 metros, os padrões tornam-se mais contínuos e estáveis, facilitando a identificação de áreas prioritárias em nível regional. Já no de 2500 metros, aparecem apenas grandes zonas de maior concentração, sendo mais adequado para decisões estratégicas em nível municipal.
+
+O importante é notar que a escala de análise influencia a forma como enxergamos o problema. O fenômeno é o mesmo, mas sua interpretação muda conforme a “lente” utilizada, algo fundamental para o planejamento e a tomada de decisão na gestão pública.
+
+
+[*Fonte: Referência científica: Druck, S.; Carvalho, M.S.; Câmara, G.; Monteiro, A.V.M. (eds) "Análise Espacial de Dados Geográficos". Brasília, EMBRAPA, 2004](http://www.dpi.inpe.br/gilberto/livro/analise/cap2-eventos.pdf)
+
+
+## **Aplicação V:** Estudo de John Snow
 
 - Segue algumas aplicações com os dados do pacote `cholera`, que contêm as localizações das mortes por cólera no famoso estudo de John Snow (Londres, 1854).
 
@@ -2284,11 +2219,79 @@ plot_ly() |>
   )
 ```
 
-## **Aplicação V:** Geoestatística com dados de pluviosidade na cidade do Rio de Janeiro/RJ
+## **Aplicação VI:** Geoestatística com dados de pluviosidade na cidade do Rio de Janeiro/RJ
 
 Nesta aplicação, utilizaremos técnicas de geoestatística para analisar os dados de chuva acumulada provenientes das estações pluviométricas do sistema Alerta Rio. Os dados referem-se à média da precipitação acumulada em 7 dias, com base nos totais das últimas 24h e 96h, permitindo uma visão mais abrangente da distribuição espacial da chuva no município.
 
 Através do uso de bibliotecas do R específicas para análise espacial e interpolação, o objetivo é construir modelos geoestatísticos que possibilitem a interpolação dos valores de precipitação em regiões não monitoradas diretamente por estações. Esse tipo de abordagem pode auxiliar tanto no planejamento urbano quanto na prevenção de desastres naturais.
+
+### Uma breve introdução a Geoestística
+
+## Semivariograma: a base da análise espacial
+
+Uma das principais ferramentas da geoestatística é o semivariograma, que mede o quanto dois pontos próximos no espaço se parecem (ou se diferem) com relação ao valor de uma variável.
+
+::: box-dica2
+**A ideia central é**: Se dois pontos estão muito próximos, é esperado que seus valores sejam parecidos. Já se estiverem distantes, a diferença entre os valores tende a aumentar.
+
+:::
+  
+A versão experimental do semivariograma é calculada para diferentes distâncias entre os pontos, usando a seguinte fórmula:
+  
+
+$$\hat{\gamma}(h) = \dfrac{1}{2N(h)}\sum^{N(h)}_{i=1}[z(x_i) - z(x_i + h)]^2 $$
+Sabendo que:
+  
+- $\hat{\gamma}(h)$: valor estimado do fenômeno para a distância $h$;
+
+- $N(h)$: número de pares de pontos separados por uma distância $h$;
+
+- $z(x_i)$: valor observado da variável na localização $x_i$;
+
+- $z(x_i + h)$: valor observado da variável em um ponto a uma distância $h$ de $x_i$.
+
+* A expressão representa a \textbf{diferença média ao quadrado} entre os valores da variável observada em pares de pontos separados pela distância $h$.
+
+
+```{r echo=F, fig.align="center", out.width= "40%", fig.show='hold'}
+include_graphics('figuras/variograma1.png')
+```
+
+::: box-dica1
+
+📌 **Efeito Pepita (C₀)**: É a variação observada mesmo quando a distância entre os pontos é muito pequena ou zero. 
+
+📌 **Patamar (C)**: É o valor em que o variograma se estabiliza, indicando que a partir de certa distância, a variabilidade entre os pontos não aumenta mais. 
+
+📌 **Alcance (a)**: É a distância a partir da qual dois pontos deixam de estar correlacionados. Até essa distância, os valores ainda apresentam semelhança espacial, ou seja, após essa distância, tornam-se independentes.
+
+:::
+  
+  
+Apesar de útil, essa fórmula não é robusta em todas as situações. Em alguns casos, a variabilidade não é constante ao longo da área estudada, o que chamamos de heterocedasticidade. Nesses cenários, modelos diferentes podem ser utilizados para representar o comportamento do semivariograma. Por exemplo:
+  
+i) **Modelo Exponencial**
+  
+ii) **Modelo Esférico**
+  
+iii) **Modelo Gaussiano**
+  
+iv) **Outros**
+  
+```{r echo=F, fig.align="center", out.width= "40%", fig.show='hold'}
+include_graphics('figuras/variograma2.png')
+```
+
+* **Exemplo:** Mapa sobre o teor de argila no solo.
+
+```{r echo=F, fig.align="center", out.width= "70%", fig.show='hold'}
+knitr::include_graphics('figuras/geoestatistica7.png')
+```
+
+A imagem mostra a interpolação do teor de argila em uma área agrícola da Fazenda Canchim (SP), a partir de amostras de solo coletadas em campo. Diversos métodos são comparados: **a geoestatística (krigagem)**, que utiliza a estrutura de dependência espacial dos dados via semivariograma e produz um mapa suavizado e estatisticamente robusto; o método do **inverso da distância (IDW)**, que pondera os pontos mais próximos com maior influência, resultando em maior detalhamento local, mas com risco de exagerar variações; a **média simples**, que suaviza os dados sem considerar plenamente a variabilidade espacial; e o método do **vizinho mais próximo**, que gera áreas abruptas ao atribuir a cada região o valor da amostra mais próxima, sem suavização. O exemplo evidencia como a escolha do método de interpolação impacta diretamente a qualidade e continuidade do mapa final.
+
+
+[*Fonte: Referência científica: Druck, S.; Carvalho, M.S.; Câmara, G.; Monteiro, A.V.M. (eds) "Análise Espacial de Dados Geográficos". Brasília, EMBRAPA, 2004](http://www.dpi.inpe.br/gilberto/livro/analise/cap3-superficies.pdf)
 
 ### Biliotecas do R que serão utilizadas
 
@@ -2879,6 +2882,7 @@ leaflet(data = estacoes.longlat, options = leafletOptions(attributionControl = F
   # Oculta os bairros inicialmente
   hideGroup(group = c("Bairros"))
 ```
+  
 
 # **Trabalho Final**
 
