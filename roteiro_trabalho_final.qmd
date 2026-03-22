@@ -28,7 +28,7 @@ O aluno deverá:
 
 - Utilizar a função `geobr::read_municipality()` para baixar a malha do estatdo de Tocantins dividida por municípios;
 
-- As variáveis doa tabela que será utilizada para o trabalho é [`dados_tocantins_aeda.csv`](dados/dados_tocantins_aeda.csv) e [`dados_tocantins_aeda.xlsx`](dados/dados_tocantins_aeda.xlsx) são:
+- As variáveis doa tabela que será utilizada para o trabalho é [`dados_tocantins_aeda.csv`](dados/trabalho_final/dados_tocantins_aeda.csv) e [`dados_tocantins_aeda.xlsx`](dados/trabalho_final/dados_tocantins_aeda.xlsx) são:
 
 | Coluna           | Descrição                    |
 | ---------------- | ---------------------------- |
