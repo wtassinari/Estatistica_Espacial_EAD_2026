@@ -1,8 +1,8 @@
 ---
-title: "Trabalho Final — Estatística Espacial"
-subtitle: "Análise Espacial em Dados de Área (AEDA)"
+title: "Roteiro para o Trabalho Final — Estatística Espacial"
+subtitle: "Análise Espacial"
 author: "Prof. Wagner Tassinari (DEMAT/ICE/UFRRJ)"
-date: "2025-06-22"
+# date: "2025-06-22"
 format:
   html:
     toc: true
@@ -147,21 +147,19 @@ library(gridExtra)       # Combinação de gráficos
 
 ## 💡 Dicas Importantes
 
-1. **Escolha de dados:** Selecione um tema que tenha interesse e dados disponíveis. Dados simulados com padrão espacial bem definido também são aceitos.
+1. **Reprodutibilidade:** Certifique-se de que todo o código está comentado e que alguém consegue reproduzir sua análise executando o arquivo `.qmd` ou `.rmd`
 
-2. **Reprodutibilidade:** Certifique-se de que todo o código está comentado e que alguém consegue reproduzir sua análise executando o arquivo `.qmd`.
+2. **Visualizações:** Mapas e gráficos são fundamentais. Use cores apropriadas e legendas claras.
 
-3. **Visualizações:** Mapas e gráficos são fundamentais. Use cores apropriadas e legendas claras.
+3. **Interpretações:** Não apenas apresente os resultados, mas **interprete-os**. 
 
-4. **Interpretações:** Não apenas apresente os resultados, mas **interprete-os**. O que significam os valores de Moran I? Quais são os clusters identificados? Por que um modelo é melhor que outro?
-
-5. **Limitações:** Seja honesto sobre as limitações do seu trabalho. Nenhuma análise é perfeita.
+4. **Limitações:** Seja honesto sobre as limitações do seu trabalho. Nenhuma análise é perfeita.
 
 ---
 
 ## 📬 Dúvidas e Suporte
 
-Em caso de dúvidas ou dificuldades técnicas, entre em contato por e-mail: **tassinari@ufrrj.br**
+Em caso de dúvidas ou dificuldade, entre em contato por e-mail: **tassinari@ufrrj.br**
 
 ---
 
