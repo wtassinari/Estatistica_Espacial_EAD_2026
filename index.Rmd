@@ -2884,7 +2884,7 @@ leaflet(data = estacoes.longlat, options = leafletOptions(attributionControl = F
 
 # **Trabalho Final**
 
-Veja aqui os detalhes do 👉 [Trabalho Final](trabalho_final.html)
+* Veja aqui os detalhes do 👉 [Trabalho Final](roteiro_trabalho_final.html)
 
 # 📚 Bibliografia sugerida
 
