@@ -1,0 +1,5 @@
+"0","library(tmap)"
+"0","data(World)"
+"0","tmap_style(""classic"")"
+"0","# Desenhando um rápido mapa temático mundial para esperança de vida."
+"0","qtm(World, fill = ""life_exp"")"

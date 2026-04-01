@@ -1,0 +1,7 @@
+"0","library(sp)"
+"0",""
+"0","sp::coordinates(dados_geo) <- ~  longitude + latitude"
+"0",""
+"0","# Definindo a projeção"
+"0","proj4string(dados_geo) <- CRS(""+init=epsg:4326"")  # WGS84"
+"0",""

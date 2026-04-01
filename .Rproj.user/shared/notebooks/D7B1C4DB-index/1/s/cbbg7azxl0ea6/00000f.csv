@@ -1,0 +1,2 @@
+"0","# lendo a base de queimadas"
+"0","dados_area <- readxl::read_excel(""dados/queimadas/queimadas_area.xlsx"")"

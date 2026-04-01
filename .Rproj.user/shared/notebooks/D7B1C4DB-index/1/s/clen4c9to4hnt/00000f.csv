@@ -1,0 +1,4 @@
+"0","library(readxl)"
+"0","  "
+"0","# Carregar o arquivo"
+"0","dados_geo <- read_excel(""dados/queimadas/queimadas_geo.xlsx"")"

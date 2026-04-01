@@ -1,0 +1,1 @@
+"0","spplot(dados_geo['frp'], scales=list(draw=T), key.space=""right"", colorkey=T)"

@@ -1,0 +1,8 @@
+"0","library(geobr)"
+"0",""
+"0","# Baixar polígono do RJ (código IBGE = 33)"
+"0","rj_contorno <- read_state(code_state = 33, year = 2020)"
+"2","Download status: 0 done; 1 in progress (0 b/s). Total size: 2.03 Mb (??%)..."
+"2","Download status: 1 done; 0 in progress. Total size: 2.03 Mb (100%)..."
+"2"," done!             
+"

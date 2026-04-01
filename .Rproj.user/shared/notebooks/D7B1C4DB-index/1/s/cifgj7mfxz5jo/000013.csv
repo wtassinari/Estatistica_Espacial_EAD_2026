@@ -1,0 +1,7 @@
+"0","# ============================================================================"
+"0","# Left Join mapa_rj + planilha casos dengue"
+"0","# ============================================================================"
+"0","mapa_rj <- mapa_rj |>"
+"0","  mutate(code_muni = as.character(code_muni)) |>"
+"0","  left_join(dengue, by = ""code_muni"") |> "
+"0","  select(code_muni, municipio, pop2022, casos, incidencia)  "

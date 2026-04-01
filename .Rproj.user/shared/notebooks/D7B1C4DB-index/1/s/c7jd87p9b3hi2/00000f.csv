@@ -1,0 +1,1 @@
+"0","plot(mapa_rj$incidencia_suavizada, mapa_rj$incidencia)"

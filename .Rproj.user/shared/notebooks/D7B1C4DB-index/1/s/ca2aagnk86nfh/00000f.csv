@@ -1,0 +1,2 @@
+"0","viz.sf <- as(nb2lines(vizinhos_rainha, coords = coord), 'sf')"
+"0","viz.sf <- st_set_crs(viz.sf, st_crs(mapa_rj))"

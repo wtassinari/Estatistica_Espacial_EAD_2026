@@ -1,0 +1,62 @@
+# 📊 Variáveis do GAL (Sistema Gerenciador de Ambiente Laboratorial)
+
+## 🏥 1. Identificação da solicitação
+- numero_requisicao
+- unidade_solicitante
+- cnes_unidade
+- municipio_unidade
+- uf_unidade
+- codigo_ibge_unidade
+
+## 👨‍⚕️ 2. Profissional solicitante
+- nome_profissional
+- registro_profissional
+- assinatura_profissional
+
+## 📅 3. Informações da solicitação
+- data_solicitacao
+- data_primeiros_sintomas
+- classificacao_caso
+- tempo_tratamento
+- etapa_tratamento
+
+## 💉 4. Informações clínicas / epidemiológicas
+- situacao_vacinal
+- data_ultima_vacina
+
+## 👤 5. Identificação do paciente
+- nome_paciente
+- data_nascimento
+- idade
+- sexo
+- idade_gestacional
+- nome_mae
+- cpf
+- cns
+
+## 📍 6. Endereço do paciente
+- logradouro
+- numero
+- complemento
+- bairro
+- municipio_residencia
+- uf_residencia
+- codigo_ibge_residencia
+- cep
+- telefone
+- zona
+- pais
+
+## 🧪 7. Informações laboratoriais
+- exame_solicitado
+- tipo_material_biologico
+- numero_amostra
+- data_coleta
+- uso_previo_medicamento
+
+## 🔬 8. Fluxo laboratorial
+- laboratorio_executor
+- status_amostra
+- data_processamento
+- resultado_exame
+- data_liberacao_resultado

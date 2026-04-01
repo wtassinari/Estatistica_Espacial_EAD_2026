@@ -1,0 +1,8 @@
+"0","library(ggplot2)"
+"0","# Plotar"
+"0","ggplot() +"
+"0","   geom_sf(data = rj_contorno, fill = ""lightgreen"", color = ""black"") +"
+"0","   geom_sf(data = pontos_sf, color = ""red"", size = 1.0, alpha = 0.7) +"
+"0","   labs(title = ""Focos de Queimadas - Rio de Janeiro"","
+"0","       caption = ""Fonte: INPE"") +"
+"0","  theme_minimal()"

@@ -1,0 +1,5 @@
+"0","library(sf)"
+"0",""
+"0","pontos_sf <- st_as_sf(dados_pontos, "
+"0","                      coords = c(""longitude"", ""latitude""),"
+"0","                       crs = 4326)"

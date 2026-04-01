@@ -1,0 +1,2 @@
+"0","resI <- localmoran.sad(lm(mapa$casos ~ 1), 1:length(vizinhos_torre), vizinhos_torre, style = ""W"")"
+"0","summary(resI)[1:10,]"
