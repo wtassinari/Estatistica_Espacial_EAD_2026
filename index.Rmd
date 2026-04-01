@@ -1248,143 +1248,51 @@ tm_shape(mapa) +
 :::
 
 
-#### **Bayesiano Empírico**
+#### **# Bayesiano Empírico: Global e Local**
 
-O Bayes Empírico (Empirical Bayes) é uma abordagem estatística que combina informações de diferentes áreas geográficas para estabilizar estimativas de risco, especialmente em situações onde algumas áreas têm populações pequenas e, consequentemente, taxas instáveis.
+##### A ideia central
 
-A ideia central é que a **taxa real** \(\theta_i\) de uma área não é a taxa observada \(t_i\), mas sim uma **combinação ponderada** entre:
+Imagine que você quer estimar a taxa de uma doença em vários municípios. O problema: municípios pequenos têm taxas **instáveis** — um único caso pode triplicar a taxa de um ano para o outro. Como resolver isso?
 
-1. A **informação local** (taxa observada na própria área)
+O **Bayesiano Empírico** "suaviza" a taxa observada de cada área, combinando-a com uma **média de referência**:
 
-2. Uma **informação de referência** (média de um conjunto de áreas)
+$$\hat{\theta}_i = w_i \cdot t_i + (1 - w_i) \cdot \mu$$
 
-O estimador bayesiano empírico segue a forma geral:
+**Leia assim:** a taxa estimada é uma média ponderada entre a taxa local ($t_i$) e uma referência ($\mu$), controlada pelo peso $w_i$.
 
-\[
-\hat{\theta}_i = w_i \cdot t_i + (1 - w_i) \cdot \mu
-\]
+O peso $w_i$ depende do tamanho da população:
 
-Onde:
-- \(t_i\) = taxa observada na área \(i\)
-- \(\mu\) = média de referência (pode ser global ou local)
-- \(w_i\) = peso atribuído à taxa observada, **inversamente proporcional à população**
+- **Município grande** $\rightarrow$ $w_i$ próximo de 1 $\rightarrow$ confia na taxa observada
+
+- **Município pequeno** $\rightarrow$ $w_i$ próximo de 0 $\rightarrow$ puxa para a média de referência
 
 
-##### **I) Bayesiano Empírico Global**
+**Bayesiano Empírico Global**
 
-No **Bayes Empírico Global**, a média de referência \(\mu\) é a **média global** e   \(\sigma\) é a **variância global** de todas as áreas da região de estudo. A hipótese subjacente é que todas as áreas compartilham a mesma distribuição a priori para o risco verdadeiro.
+A referência é a **média geral de toda a região**. Um município com poucos habitantes é "puxado" para essa média geral.
 
-O peso \(w_i\) é definido como:
-
-\[
-w_i = \frac{\sigma^2}{\sigma^2 + \frac{\mu}{n_i}}
-\]
-
-Onde:
-
-- \(\sigma^2\) = variância das taxas observadas em torno da média global
-
-- \(n_i\) = população da área \(i\) (ou denominador da taxa)
+**Exemplo:** município rural com 1 caso em 200 pessoas (taxa altíssima). O método reconhece que a população é pequena e suaviza a estimativa em direção à média do estado.
 
 
-**Média global:**
+**Bayesiano Empírico Local**
 
-\[
-\hat{\mu} = \frac{\sum_{i=1}^n y_i}{\sum_{i=1}^n n_i}
-\]
+A referência é a **média dos municípios vizinhos**. A ideia é que municípios próximos tendem a ter condições parecidas (clima, renda, acesso à saúde).
+
+**Exemplo:** o mesmo município rural agora é comparado com seus vizinhos imediatos, não com todo o estado. Isso respeita melhor a heterogeneidade regional.
 
 
-**Variância global:**
+**Global vs. Local: qual é a diferença ?**
 
-\[
-\hat{\sigma}^2 = \frac{\sum n_i (t_i - \hat{\mu})^2}{\sum n_i} - \frac{\hat{\mu}}{\bar{n}}
-\]
+A diferença está em **quem é a referência** ($\mu$):
 
-Onde \(\bar{n}\) é a média das populações.
+| | **Global** | **Local** |
+|---|---|---|
+| **Referência** | Média de *todas* as áreas | Média dos *vizinhos* |
+| **Hipótese** | Todas as áreas se parecem | Áreas próximas se parecem |
+| **Quando usar** | Região homogênea | Quando há padrão espacial |
 
-**Comportamento do Peso:**
 
-- **Área populosa** (\(n_i\) grande):  
 
-  \(\frac{\mu}{n_i}\) é pequeno $\rightarrow$ \(w_i \approx 1\) $\rightarrow$ \(\hat{\theta}_i \approx t_i\)  
-  
-  *A estimativa fica próxima da taxa observada*
-
-- **Área com pouca população** (\(n_i\) pequeno): 
-
-  \(\frac{\mu}{n_i}\) é grande $\rightarrow$ \(w_i\) pequeno $\rightarrow$ \(\hat{\theta}_i \approx \mu\)  
-  
-  *A estimativa é puxada para a média global*
-  
-###### **II) Bayesiano Empírico Local ou Espacial**
-
-No **Bayes Empírico Local** (também chamado de Bayes Empírico Espacial), a média de referência não é global, mas sim a **média dos vizinhos** da área \(i\).
-
-A fórmula geral se torna:
-
-\[
-\hat{\theta}_i = w_i \cdot t_i + (1 - w_i) \cdot \mu_i
-\]
-
-Onde:
-
-- \(t_i\) = taxa observada na área \(i\)
-
-- \(\mu_i\) = média das taxas dos **vizinhos** da área \(i\)
-
-- \(w_i\) = peso (calculado localmente ou com parâmetros globais)
-
-A média local \(\mu_i\) é calculada como:
-
-\[
-\mu_i = \frac{\sum_{j \in \text{vizinhos}(i)} n_j \cdot t_j}{\sum_{j \in \text{vizinhos}(i)} n_j}
-\]
-
-Ou, de forma equivalente:
-
-\[
-\mu_i = \frac{\sum_{j} w_{ij} \cdot y_j}{\sum_{j} w_{ij} \cdot n_j}
-\]
-
-Onde \(w_{ij}\) são os pesos espaciais.
-
-**Abordagens para o Peso Local:**
-
-Existem duas variantes principais:
-
-- **Variante A:** Parâmetros Globais, Média Local
-
-Mantém-se \(\sigma^2\) e \(\mu\) globais, mas substitui-se \(\mu\) por \(\mu_i\):
-
-\[
-\hat{\theta}_i = w_i \cdot t_i + (1 - w_i) \cdot \mu_i
-\]
-
-\[
-w_i = \frac{\sigma^2}{\sigma^2 + \frac{\mu}{n_i}}
-\]
-
-- **Variante B:** Parâmetros Locais
-
-Estima-se \(\mu_i\) e \(\sigma_i^2\) **apenas a partir dos vizinhos**:
-
-\[
-\hat{\theta}_i = w_i \cdot t_i + (1 - w_i) \cdot \mu_i
-\]
-
-\[
-w_i = \frac{\sigma_i^2}{\sigma_i^2 + \frac{\mu_i}{n_i}}
-\]
-
-| Característica | Bayes Empírico Global | Bayes Empírico Local |
-|----------------|----------------------------|---------------------------|
-| **Referência** | Média global de todas as áreas | Média dos vizinhos |
-| **Hipótese** | Todas as áreas têm mesma distribuição | Áreas vizinhas têm distribuição similar |
-| **Suavização** | Em direção à média do estado/região | Em direção à média da vizinhança |
-| **Dependência espacial** | Não incorporada | Incorporada via matriz de vizinhança |
-| **Efeito em áreas isoladas** | Puxadas para média global | Menos influência se não há vizinhos |
-| **Aplicação ideal** | Áreas com homogeneidade regional | Áreas com forte autocorrelação espacial |
-| **Complexidade** | Baixa | Moderada |
 
 
 ```{r, echo=T,  out.width="70%"}
