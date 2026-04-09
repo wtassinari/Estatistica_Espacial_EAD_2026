@@ -230,8 +230,8 @@ Fonte: [Github Geopandas](https://geopandas.org/en/stable/)
 
 
 
-🌐 **Site oficial do pacote `queimadasR`** 
-  👉 [Acessar documentação](https://wtassinari.github.io/queimadasR/)
+<!-- 🌐 **Site oficial do pacote `queimadasR`**  -->
+<!--   👉 [Acessar documentação](https://wtassinari.github.io/queimadasR/) -->
 
 # 🧩 Tipologia dos Dados Espaciais
 
@@ -1557,8 +1557,35 @@ p3
 plot(mapa_rj$incidencia_suavizada, mapa_rj$incidencia)
 ```
 
+## **Aplicação III:** Utilizando o Estimador de Bayes Empírico  nos dados de Hanseniase no Mato Grosso
+
+```{r, echo=T, out.width='90%'}
+# ============================================================================
+# LER A PLANILHA
+# ============================================================================
+hansen <- read.csv2("dados/hansen/dados_hanseniase_mt.csv") |>
+    mutate(
+        tx_detecao = casos / pop2022 * 100000
+    )
+
+head(hansen)
+```
+
+#### Lendo o Mapa via `geobr`
+
+Para acessar os dados dos limites territoriais de todos os estados brasileiros é necessário utilizar a função `read_state`.
+
+```{r, echo=T, out.width='90%', message=FALSE, warning=FALSE, comments=NA}
+library(geobr)
+
+# Baixar a malha municipal do estado do MAto Grosso
+# code_muni = 33 (código do estado do RJ)
+
+mapa_mt <- read_municipality(code_muni = 51, year = 2024) |>
+        mutate(code_muni = as.character(code_muni))
+```
   
-## **Aplicação III:** Utilizando dos modelos de regressão espaciais nos dados de queimadas no estado do Rio de Janeiro.
+## **Aplicação IV:** Utilizando dos modelos de regressão espaciais nos dados de queimadas no estado do Rio de Janeiro.
 
 ####  Introdução aos Modelos de Regressão Espacial
 
@@ -2242,7 +2269,7 @@ grid.arrange(res.lm, res.car, res.gwr, ncol = 2)
 
 ```
 
-## **Aplicação IV:** Análise dos pontos de ocorrência de focos de queimadas no estado do Rio de Janeiro/Brasil em dezembro de 2025
+## **Aplicação V:** Análise dos pontos de ocorrência de focos de queimadas no estado do Rio de Janeiro/Brasil em dezembro de 2025
 
 #### Lendo os dados
 
@@ -2373,7 +2400,7 @@ O importante é notar que a escala de análise influencia a forma como enxergamo
 [*Fonte: Referência científica: Druck, S.; Carvalho, M.S.; Câmara, G.; Monteiro, A.V.M. (eds) "Análise Espacial de Dados Geográficos". Brasília, EMBRAPA, 2004](http://www.dpi.inpe.br/gilberto/livro/analise/cap2-eventos.pdf)
 
 
-## **Aplicação V:** Estudo de John Snow
+## **Aplicação VI:** Estudo de John Snow
 
 - Segue algumas aplicações com os dados do pacote `cholera`, que contêm as localizações das mortes por cólera no famoso estudo de John Snow (Londres, 1854).
 
@@ -2533,7 +2560,7 @@ plot_ly() |>
   )
 ```
 
-## **Aplicação VI:** Geoestatística com dados de pluviosidade na cidade do Rio de Janeiro/RJ
+## **Aplicação VII:** Geoestatística com dados de pluviosidade na cidade do Rio de Janeiro/RJ
 
 Nesta aplicação, utilizaremos técnicas de geoestatística para analisar os dados de chuva acumulada provenientes das estações pluviométricas do sistema Alerta Rio. Os dados referem-se à média da precipitação acumulada em 7 dias, com base nos totais das últimas 24h e 96h, permitindo uma visão mais abrangente da distribuição espacial da chuva no município.
 

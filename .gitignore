@@ -1,3 +1,4 @@
 # R/RStudio
 .Rhistory
 .DS_Store  # Se for macOS
+.Rproj.user
